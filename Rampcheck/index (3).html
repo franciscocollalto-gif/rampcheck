@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>RampCheck</title>
+
+<!-- Instalar como app en el teléfono -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="RampCheck" />
+<meta name="theme-color" content="#1e293b" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' rx='40' fill='%231e293b'/%3E%3Ctext x='90' y='118' font-size='90' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E" />
+<link rel="manifest" href='data:application/json,{"name":"RampCheck","short_name":"RampCheck","display":"standalone","background_color":"%23f8fafc","theme_color":"%231e293b","start_url":"."}' />
+
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #f1f5f9;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: #1e293b;
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+  #frame { max-width: 480px; margin: 0 auto; background: #f8fafc; min-height: 100vh; padding-bottom: 40px; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  button { font-family: inherit; color: inherit; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+
+  /* Header */
+  .header { padding: 24px 20px 8px; }
+  .headTop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .kicker { font-size: 12px; letter-spacing: 0.4px; color: #64748b; font-weight: 600; }
+  .langToggle { display: flex; gap: 2px; background: #e2e8f0; border-radius: 9px; padding: 3px; }
+  .langBtn { border: none; background: transparent; color: #64748b; font-weight: 700; font-size: 13px; padding: 5px 11px; border-radius: 7px; cursor: pointer; }
+  .langBtn.on { background: #fff; color: #1e293b; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+  h1.h1 { font-size: 27px; line-height: 1.15; margin: 0; font-weight: 700; letter-spacing: -0.5px; }
+
+  .actions { padding: 16px 20px 0; display: flex; flex-direction: column; gap: 10px; }
+  .dayBar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px 0; }
+  .dayText { font-size: 13px; color: #64748b; font-weight: 600; }
+  .dayText b { color: #1e293b; }
+  .dayBtn { border: 1px solid #e2e8f0; background: #fff; color: #1e293b; font-weight: 700; font-size: 13px; padding: 7px 12px; border-radius: 9px; cursor: pointer; }
+  .banner { margin: 12px 20px 0; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .banner span { font-size: 13px; color: #92400e; font-weight: 600; }
+  .bannerBtn { align-self: flex-start; background: #1e293b; color: #fff; border: none; font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 9px; cursor: pointer; }
+  .bigBtn { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; }
+  .mapBtn { background: #fff; color: #1e293b; border: 1.5px solid #1e293b; font-weight: 700; }
+  .photoBtn { background: #1F9D57; color: #fff; border: none; }
+  .completeBtn { background: #1F9D57; color: #fff; border: none; width: 100%; justify-content: center; margin-bottom: 4px; }
+  .pvHead { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .pvStand { font-size: 20px; font-weight: 800; }
+  .pvFlight { font-size: 13px; color: #64748b; font-weight: 600; }
+  .pvChips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pvChip { font-size: 13px; font-weight: 800; background: #eff6ff; color: #2563eb; padding: 4px 10px; border-radius: 8px; }
+  .pvNone { color: #cbd5e1; }
+  .pvRetirar { margin-top: 8px; font-size: 13px; font-weight: 700; color: #92400e; background: #fffbeb; padding: 8px 10px; border-radius: 8px; }
+  .pvDep { display: flex; align-items: center; gap: 8px; background: #eff6ff !important; }
+  .pvDepTxt { font-size: 13px; color: #2563eb; font-weight: 700; }
+  .retirarBar { margin: 6px 16px 0; background: #fffbeb; color: #92400e; font-weight: 700; font-size: 13px; padding: 10px 14px; border-radius: 12px; }
+  .salidaBar { margin: 6px 16px 0; background: #eff6ff; color: #2563eb; font-weight: 700; font-size: 13px; padding: 10px 14px; border-radius: 12px; }
+  .planBtn { background: #2563eb; color: #fff; border: none; }
+  .balBtn { background: #1e293b; color: #fff; border: none; }
+
+  .moveRow { display: flex; align-items: center; gap: 10px; width: 100%; background: transparent; border: none; border-bottom: 1px solid #e2e8f0; padding: 12px 0; cursor: pointer; text-align: left; }
+  .moveRow:last-child { border-bottom: none; }
+  .moveQty { font-size: 15px; font-weight: 800; background: #1e293b; color: #fff; padding: 4px 11px; border-radius: 8px; min-width: 34px; text-align: center; }
+  .moveTxt { font-size: 15px; font-weight: 600; color: #1e293b; }
+  .moveFar { margin-left: auto; font-size: 12px; color: #94a3b8; }
+  .planSub { font-size: 12px; font-weight: 800; color: #64748b; margin: 14px 0 8px; }
+  .planSub.more { color: #166534; }
+  .planSub.lack { color: #991b1b; }
+  .planChips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pmMore { font-size: 13px; font-weight: 800; background: #dcfce7; color: #166534; padding: 4px 9px; border-radius: 8px; }
+  .pmLack { font-size: 13px; font-weight: 800; background: #fee2e2; color: #991b1b; padding: 4px 9px; border-radius: 8px; }
+  .planNote { font-size: 13px; font-weight: 700; padding: 9px 11px; border-radius: 8px; margin-top: 10px; }
+  .planNote.miss { background: #fef2f2; color: #D64545; }
+  .planNote.have { background: #ecfdf3; color: #1F9D57; }
+
+  .mvRow { display: flex; align-items: center; gap: 10px; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; text-align: left; }
+  .mvSide { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .mvStand { font-size: 17px; font-weight: 800; padding: 4px 11px; border-radius: 8px; }
+  .mvStand.green { background: #dcfce7; color: #166534; }
+  .mvStand.red { background: #fee2e2; color: #991b1b; }
+  .mvCap { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: .3px; }
+  .mvArrow { font-size: 22px; color: #64748b; font-weight: 800; }
+  .mvQty { margin-left: auto; font-size: 24px; font-weight: 900; color: #1e293b; display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
+  .mvTrips { font-size: 10px; font-weight: 800; color: #92400e; background: #fef3c7; padding: 1px 7px; border-radius: 5px; margin-top: 3px; }
+  .mvStand.sm { font-size: 14px; padding: 2px 8px; }
+  .routeCard { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .routeHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .routeLoad { font-size: 15px; font-weight: 700; color: #1e293b; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .routeLoad b { font-size: 18px; }
+  .dropList { display: flex; flex-direction: column; gap: 8px; }
+  .dropRow { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; background: transparent; border: none; padding: 2px 0; cursor: pointer; font-size: 15px; font-weight: 600; color: #1e293b; }
+  .dropArrow { color: #94a3b8; font-weight: 800; font-size: 18px; }
+  .dropRow b { font-size: 17px; }
+
+  .fillCard { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; }
+  .fillCardHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .fillTo { font-size: 18px; font-weight: 800; color: #1e293b; }
+  .fillNeedPill { font-size: 12px; font-weight: 800; color: #fff; background: #D64545; padding: 3px 10px; border-radius: 20px; }
+  .srcList { display: flex; flex-direction: column; gap: 7px; }
+  .srcRow { display: flex; align-items: center; gap: 10px; }
+  .srcQty { font-size: 16px; font-weight: 800; color: #166534; min-width: 20px; text-align: center; background: #dcfce7; border-radius: 7px; padding: 3px 9px; }
+  .srcArrow { color: #94a3b8; font-weight: 800; }
+  .srcFrom { font-size: 16px; font-weight: 700; color: #1e293b; }
+  .srcTrips { margin-left: auto; font-size: 11px; font-weight: 800; color: #92400e; background: #fef3c7; padding: 2px 8px; border-radius: 6px; }
+  .fillShort { margin-top: 8px; font-size: 12px; font-weight: 700; color: #D64545; }
+  .tripsLine { margin-top: 9px; font-size: 12px; font-weight: 700; color: #64748b; }
+
+  .zbGrid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .zbTile { flex: 1 1 28%; min-width: 92px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 8px; text-align: center; }
+  .zbNum { font-size: 26px; font-weight: 800; line-height: 1; }
+  .zbNum.red { color: #D64545; } .zbNum.green { color: #1F9D57; } .zbNum.zero { color: #1e293b; }
+  .zbLbl { font-size: 12px; color: #64748b; font-weight: 700; margin-top: 5px; }
+  .zbTag { font-size: 11px; font-weight: 800; margin-top: 4px; }
+  .zbTag.red { color: #D64545; } .zbTag.green { color: #1F9D57; } .zbTag.zero { color: #64748b; }
+
+  .groups { padding: 18px 20px 0; }
+  .group { margin-bottom: 22px; }
+  .groupHead { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 10px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .dotSm { width: 9px; height: 9px; border-radius: 2px; display: inline-block; margin-right: 7px; }
+  .areaRow { display: flex; flex-wrap: wrap; gap: 10px; }
+  .areaCard { flex: 1 1 46%; min-width: 140px; text-align: left; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+  .areaLabel { font-size: 16px; font-weight: 700; }
+  .areaMeta { font-size: 12px; color: #64748b; }
+  .chipFalta { margin-top: 8px; align-self: flex-start; font-size: 12px; font-weight: 700; color: #fff; background: #D64545; padding: 3px 9px; border-radius: 20px; }
+  .chipOk { margin-top: 8px; align-self: flex-start; font-size: 12px; font-weight: 700; color: #1F9D57; background: #dcfce7; padding: 3px 9px; border-radius: 20px; }
+
+  /* Topbar */
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 3px solid; background: #fff; position: sticky; top: 0; z-index: 5; }
+  .back { width: 40px; height: 40px; border-radius: 10px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 20px; cursor: pointer; flex-shrink: 0; }
+  .topTitle { font-size: 22px; font-weight: 700; line-height: 1; }
+  .topSub { font-size: 13px; color: #64748b; margin-top: 3px; }
+
+  /* Stand grid */
+  .standGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px; }
+  .standCell { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 72px; justify-content: center; }
+  .standCell.on { border-color: #1e293b; border-width: 2px; }
+  .standName { font-size: 17px; font-weight: 700; }
+  .cellChips { display: flex; flex-direction: column; gap: 4px; width: 100%; margin-top: 8px; }
+  .cellChip { font-size: 11px; font-weight: 800; padding: 3px 6px; border-radius: 6px; color: #fff; text-align: center; white-space: nowrap; }
+  .neg { background: #D64545; }
+  .pos { background: #1F9D57; }
+
+  .matCard { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; margin: 10px 16px; padding: 13px 16px; }
+  .matTop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .matName3 { font-size: 17px; font-weight: 800; }
+  .scoreRow { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .scoreCol { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 52px; }
+  .haveBig { font-size: 34px; font-weight: 800; color: #1e293b; line-height: 1; }
+  .scoreRow2 { display: flex; align-items: flex-start; justify-content: center; gap: 12px; }
+  .scoreDiv { align-self: stretch; width: 1px; background: #e2e8f0; margin: 2px 0; }
+  .miniStep { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .miniStepRow { display: flex; align-items: center; gap: 4px; }
+  .hvBtn2 { width: 40px; height: 44px; border: none; border-radius: 10px; font-size: 24px; font-weight: 700; cursor: pointer; line-height: 1; }
+  .hvBtn2.minus { background: #f1f5f9; color: #64748b; }
+  .hvBtn2.plus { background: #1e293b; color: #fff; }
+  .stepNum { width: 44px; font-size: 30px; font-weight: 800; text-align: center; border: none; background: transparent; outline: none; color: #1e293b; padding: 0; }
+  .stepNum.blue { color: #2563eb; }
+  .stepNum::placeholder { color: #cbd5e1; }
+  .necFixWrap { height: 44px; display: flex; align-items: center; }
+  .needFix2b { font-size: 30px; font-weight: 800; color: #2563eb; }
+  .doneBtn { width: 100%; margin-top: 10px; background: #ecfdf3; color: #1F9D57; border: 1px solid #bbf7d0; border-radius: 10px; padding: 11px; font-weight: 800; font-size: 15px; cursor: pointer; }
+  .doneBtn:active { background: #d1fae5; }
+  .ndRow { display: flex; gap: 10px; }
+  .ndBox { flex: 1; border-radius: 12px; padding: 8px 6px 10px; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+  .ndBox.hay { background: #f8fafc; border: 1px solid #e2e8f0; }
+  .ndBox.nec { background: #eff6ff; border: 1px solid #dbeafe; }
+  .ndLbl { font-size: 11px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; }
+  .ndBox.hay .ndLbl { color: #64748b; }
+  .ndBox.nec .ndLbl { color: #2563eb; }
+  .haveInp { width: 58px; font-size: 34px; font-weight: 800; text-align: center; border: none; background: transparent; outline: none; color: #1e293b; padding: 0; line-height: 1; }
+  .haveInp::placeholder { color: #cbd5e1; }
+  .slash { font-size: 22px; color: #cbd5e1; font-weight: 700; }
+  .needInp2 { width: 50px; font-size: 22px; font-weight: 800; text-align: center; border: none; border-bottom: 2px solid #e2e8f0; background: transparent; outline: none; color: #2563eb; padding: 2px 0; }
+  .needInp2:focus { border-color: #2563eb; }
+  .needInp2::placeholder { color: #cbd5e1; }
+  .needFix2 { font-size: 22px; font-weight: 800; color: #2563eb; }
+  .scoreCap { font-size: 10px; color: #94a3b8; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+  .hvBtn { width: 46px; height: 46px; border: none; border-radius: 12px; font-size: 26px; font-weight: 700; cursor: pointer; line-height: 1; }
+  .hvBtn.minus { background: #f1f5f9; color: #64748b; }
+  .hvBtn.plus { background: #1e293b; color: #fff; }
+  .progWrap { margin-top: 12px; height: 5px; background: #eef2f6; border-radius: 99px; overflow: hidden; }
+  .progFill { height: 100%; border-radius: 99px; transition: width .15s ease; }
+  .stDoneBar { margin: 6px 16px 0; background: #ecfdf3; color: #1F9D57; font-weight: 800; font-size: 14px; padding: 10px 14px; border-radius: 12px; text-align: center; }
+  .stPendBar { margin: 6px 16px 0; background: #fffbeb; color: #92400e; font-weight: 700; font-size: 12.5px; padding: 9px 14px; border-radius: 12px; }
+  .rMiss { font-size: 14px; font-weight: 800; color: #fff; background: #D64545; padding: 5px 12px; border-radius: 8px; white-space: nowrap; }
+  .rSob { font-size: 14px; font-weight: 800; color: #fff; background: #1F9D57; padding: 5px 12px; border-radius: 8px; white-space: nowrap; }
+  .rOk { font-size: 19px; font-weight: 900; color: #1F9D57; }
+  .rNone { color: #cbd5e1; font-size: 15px; }
+  .cellDone { font-size: 22px; font-weight: 900; color: #1F9D57; margin-top: 6px; }
+  .postKgRow { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .postKgInp { width: 84px; text-align: center; font-size: 18px; font-weight: 800; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 7px 6px; outline: none; background: #fff; color: #1e293b; }
+  .postKgInp:focus { border-color: #2563eb; }
+  .postKgHint { font-size: 12px; color: #94a3b8; font-weight: 700; }
+
+  /* Blocks */
+  .block { background: #fff; margin: 14px 16px; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; }
+  .blockTitle { font-size: 15px; font-weight: 700; }
+  .blockHint { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+  .weightRow { display: flex; align-items: baseline; gap: 8px; margin: 10px 0 14px; }
+  .weightInput { flex: 1; font-size: 40px; font-weight: 700; border: none; outline: none; border-bottom: 2px solid #e2e8f0; padding: 4px 0; width: 100%; }
+  .unit { font-size: 18px; color: #64748b; font-weight: 600; }
+  .needCard { display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border-radius: 12px; padding: 14px 16px; }
+  .needNum { font-size: 34px; font-weight: 800; color: #2563eb; line-height: 1; }
+  .needLbl { font-size: 12px; color: #3b6fb8; font-weight: 600; margin-top: 3px; }
+  .needBreak { font-size: 12px; color: #64748b; text-align: right; max-width: 130px; }
+
+  .stepHead { display: flex; justify-content: space-between; align-items: center; }
+  .statusBox { margin-top: 14px; font-weight: 700; font-size: 15px; padding: 12px 14px; border-radius: 10px; text-align: center; }
+  .stFalta { background: #fef2f2; color: #D64545; }
+  .stSobra { background: #ecfdf3; color: #1F9D57; }
+  .stOk { background: #f0fdf4; color: #1F9D57; }
+
+  .countRow { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #e2e8f0; }
+  .countLabel { font-size: 16px; font-weight: 600; }
+  .countHint { font-size: 12px; color: #64748b; margin-top: 1px; }
+
+  .stepper { display: flex; align-items: center; gap: 4px; background: #f1f5f9; border-radius: 12px; padding: 4px; }
+  .stepBtn { width: 42px; height: 42px; border-radius: 9px; border: none; background: #fff; font-size: 24px; font-weight: 600; cursor: pointer; color: #1e293b; line-height: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .stepInput { width: 52px; text-align: center; font-size: 20px; font-weight: 700; border: none; background: transparent; outline: none; padding: 0; }
+
+  .globalGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .gnum { background: #f8fafc; border-radius: 12px; padding: 14px 8px; text-align: center; border: 1px solid #e2e8f0; }
+  .gnumN { font-size: 30px; font-weight: 800; line-height: 1; }
+  .gnumL { font-size: 12px; color: #64748b; margin-top: 5px; font-weight: 600; }
+
+  .catTotals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+  .catTotal { text-align: center; background: #f8fafc; border-radius: 10px; padding: 12px 4px; border: 1px solid #e2e8f0; }
+  .catTotalNum { font-size: 24px; font-weight: 800; }
+  .catTotalLbl { font-size: 11px; color: #64748b; margin-top: 3px; font-weight: 600; }
+
+  .zoneList { margin-top: 12px; display: flex; flex-direction: column; gap: 12px; }
+  .empty { color: #64748b; font-size: 14px; padding: 8px 0; line-height: 1.5; }
+  .zoneRow { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; }
+  .zoneRowTop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .zoneName { font-size: 15px; font-weight: 700; display: flex; align-items: center; }
+  .zoneStats { display: flex; gap: 14px; flex-wrap: wrap; }
+  .miniStat { display: flex; flex-direction: column; }
+  .miniStatV { font-size: 17px; font-weight: 700; }
+  .miniStatL { font-size: 11px; color: #64748b; font-weight: 600; }
+  .chipSobra { font-size: 12px; font-weight: 700; color: #fff; background: #1F9D57; padding: 3px 9px; border-radius: 20px; }
+  .chipMuted { font-size: 12px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 9px; border-radius: 20px; }
+
+  /* Map */
+  .mapControls { position: sticky; top: 61px; background: #f8fafc; z-index: 4; padding: 12px 16px 10px; border-bottom: 1px solid #e2e8f0; }
+  .mapPicker { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .pill { flex-shrink: 0; border: 1px solid #e2e8f0; background: #fff; color: #64748b; font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 20px; cursor: pointer; }
+  .pill.on { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .legend { display: flex; gap: 16px; margin-top: 10px; }
+  .legendItem { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b; font-weight: 600; }
+  .legendSq { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  .mapZone { padding: 14px 16px 0; }
+  .mapZoneHead { display: flex; align-items: center; font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+  .mapGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+  .mapCell { border-radius: 10px; padding: 10px 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 54px; justify-content: center; border: none; }
+  .mapCellId { font-size: 13px; font-weight: 700; }
+  .mapCellVal { font-size: 14px; font-weight: 800; }
+  .cMiss { background: #D64545; color: #fff; }
+  .cHave { background: #1F9D57; color: #fff; }
+  .cZero { background: #fff; border: 1px solid #e2e8f0; color: #64748b; }
+  .cEmpty { background: #f1f5f9; border: 1px solid #e2e8f0; color: #64748b; }
+
+  .genList { display: flex; flex-direction: column; gap: 8px; }
+  .genRow { display: flex; flex-direction: column; gap: 8px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; cursor: pointer; text-align: left; width: 100%; }
+  .genHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .genId { font-size: 16px; font-weight: 800; }
+  .genTags { display: flex; gap: 6px; }
+  .tagMiss { font-size: 11px; font-weight: 800; color: #fff; background: #D64545; padding: 2px 8px; border-radius: 6px; }
+  .tagHave { font-size: 11px; font-weight: 800; color: #fff; background: #1F9D57; padding: 2px 8px; border-radius: 6px; }
+  .genChips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .genChip { font-size: 13px; font-weight: 800; padding: 5px 10px; border-radius: 8px; color: #fff; }
+  #micBtn { position: fixed; right: 16px; bottom: 20px; width: 64px; height: 64px; border-radius: 50%; background: #2563eb; color: #fff; border: none; font-size: 28px; box-shadow: 0 4px 14px rgba(0,0,0,.25); z-index: 50; cursor: pointer; }
+  #micBtn.listening { background: #D64545; animation: micpulse 1s infinite; }
+  @keyframes micpulse { 0%{transform:scale(1)} 50%{transform:scale(1.09)} 100%{transform:scale(1)} }
+  #toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 14px; font-weight: 600; max-width: 88%; text-align: center; opacity: 0; transition: opacity .2s; z-index: 51; pointer-events: none; }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div id="frame"></div>
+
+<script>
+/* ============================================================
+   DATOS
+   ============================================================ */
+const AREAS = [
+  { id:"ECHO_N", parent:"Echo", label:"Echo Nord", color:"#EA7C2B", stands:["E67","E57","E53","E49","E47","E45","E43","E35","E27","E23","E19"] },
+  { id:"ECHO_S", parent:"Echo", label:"Echo Süd", color:"#EA7C2B", stands:["E64","E62","E58","E56","E54","E52","E50","E48","E46","E44","E42","E36","E34","E32","E26","E20"] },
+  { id:"ALPHA_N", parent:"Alpha", label:"Alpha Nord", color:"#D64545", stands:["A57","A49","A17","A15","A13","A11","A09","A07","A05","A03"] },
+  { id:"ALPHA_S", parent:"Alpha", label:"Alpha Süd", color:"#D64545", stands:["A48","A46","A44","A42","A10","A08","A04","A02"] },
+  { id:"BRAVO", parent:"Bravo", label:"Bravo", color:"#2F6FB3", stands:["B43","B39","B35","B31","B45","B41","B38","B37","B33"] },
+  { id:"INDIA", parent:"India", label:"India", color:"#3AA76D", stands:["I01","I02","I03","I04","I05"] },
+  { id:"CHARLIE", parent:"Charlie", label:"Charlie", color:"#C9A227", stands:["C50","C51","C52","C53","C54","C55","C56","C57","C58","C59","C60"] },
+  { id:"DELTA", parent:"Delta", label:"Delta", color:"#7A4FB5", stands:["D01","D02","D03","D04","D05","D06","D07","D08","D09","D10","D11","D12","D13","D14","D15","D16","D17"] },
+  { id:"GOLF", parent:"Golf", label:"Golf", color:"#3AA76D", stands:["G01","G02","G03","G04","G05","G06","G07","G08","G09","G10","G11","G12","G13","G14","G16","G17"] },
+  { id:"HOTEL", parent:"Hotel", label:"Hotel", color:"#8A6D4A", stands:["H11","H12","H13","H14","H15","H16","H21","H32","H33","H34","H35"] },
+  { id:"FOXTROT", parent:"Foxtrot", label:"Foxtrot", color:"#2F6FB3", stands:["F70","F71","F72"] },
+  { id:"WHISKEY", parent:"Whiskey", label:"Whiskey", color:"#8455C2", stands:["W01","W02","W03","W04","W05","W21","W22","W23","W24","W30","W40","W50","W51","W52","W53","W54","W55","W56","W57","W58","W59","W60"] },
+  { id:"TANGO", parent:"Tango", label:"Tango", color:"#E08A2B", stands:["T10","T11","T12","T13","T14","T15","T16","T22","T23","T27","T28","T31","T32","T34","T35","T36","T37","T38","T39","T41","T42","T43","T44","T45","T46","T47","T48","T49","T50","T51","T52","T53","T54","T55","T56","T58","T60","T61","T62","T63","T79","T80","T82"] },
+  { id:"PAPA", parent:"Papa", label:"Papa", color:"#8455C2", stands:["P31","P32","P33","P34","P35","P36","P37","P3A","P3B","P3C","P3D"] },
+];
+const AREA_BY_ID = {}; AREAS.forEach(a => AREA_BY_ID[a.id] = a);
+const AREA_OF_STAND = {}; AREAS.forEach(a => a.stands.forEach(s => AREA_OF_STAND[s] = a));
+const ALL_STANDS = []; AREAS.forEach(a => a.stands.forEach(s => ALL_STANDS.push(s)));
+
+const MAT_KEYS = ["wagen","dolly","trailer","wageli","post"];
+const MAP_CATS = ["todo", ...MAT_KEYS];
+const CAPS = { wagen:10, dolly:9, trailer:7, wageli:99, post:99 };
+const KG = 200;
+const LS_DATA = "rampcheck_data_v2";
+const LS_LANG = "rampcheck_lang_v1";
+const LS_DAY = "rampcheck_day_v1";
+
+const T = {
+  es: {
+    kicker:"Control de pista", zoneQ:"¿En qué zona estás?",
+    balanceBtn:"Ver balance general", mapBtn:"Ver mapa · dónde hay / falta",
+    photoBtn:"📷 Leer pantalla del sistema", photoTitle:"Leído de la foto", photoLoad:"Cargar todo",
+    photoCancel:"Cancelar", photoEmpty:"No pude leer llegadas en la foto.",
+    photoRetirar:"retirar contenedores vacíos", photoSalida:"sale · puede dejar material",
+    photoNotReady:"La lectura por foto está lista pero falta conectar la clave (ver GUIA-FOTO).",
+    planBtn:"Plan · qué llevar y a dónde", planTitle:"Plan de traslados",
+    planEmpty:"Nada que mover: todo está nivelado o sin datos.",
+    needOutside:"Falta traer de afuera", freeSurplus:"Sobra libre (se puede sacar)",
+    planMore:"Hay de más — sacar de acá", planLack:"Falta — poner acá",
+    planMoves:"Cómo nivelar", planTake:"Llevá", loadWord:"Cargá", inWord:"en", leaveWord:"dejá",
+    zoneBalance:"Balance de la zona", zoneLevel:"Cómo nivelar en la zona",
+    faltaWord:"Falta", sobraWord:"Sobra", okWord:"OK", sobraTag:"sobra", faltaTag:"falta",
+    stands:"stands", ok:"OK",
+    weightTitle:"Peso a descargar", wagenNeeded:"Wagen necesarios",
+    calcHint:"Cargá el peso para calcular",
+    wagenAtStand:"Wagen en el stand", wagenByWeight:"Carros por peso",
+    complete:"Completo", otherMat:"Otro material", otherHint:"En negativo = falta, en positivo = hay/sobra",
+    balance:"Balance", wagenTotal:"Wagen — total", needed:"Necesarios", loaded:"Cargados",
+    faltanShort:"Faltan", sobranShort:"Sobran", otherTotal:"Otro material — neto",
+    byZone:"Por zona", emptyZone:"Todavía no cargaste material en ningún stand.",
+    noWeight:"Sin peso", mapTitle:"Mapa", legendHave:"Hay / sobra", legendMiss:"Falta",
+    dayLabel:"Día", newDay:"Día nuevo", startNewDay:"Empezar día nuevo",
+    clearConfirm:"¿Borrar todo el material cargado y empezar un día nuevo?",
+    oldDayMsg:"Estos datos son de otro día",
+    needShort:"Necesito", haveShort:"Hay", capHave:"hay", capNeed:"nec.",
+    plazaComplete:"Plaza completa", plazaPending:"Falta completar", tripsWord:"viajes", doneWord:"Ya lo llevé", completarBtn:"✅ Ya lo llevé — completar",
+    labels:{ todo:"General", wagen:"Wagen", dolly:"Dolly", trailer:"Tráiler", wageli:"Degerwage", post:"Postwagen" },
+    hints:{ post:"", wageli:"Carro cerrado", dolly:"", trailer:"" },
+  },
+  de: {
+    kicker:"Vorfeldkontrolle", zoneQ:"In welcher Zone bist du?",
+    balanceBtn:"Gesamtbilanz anzeigen", mapBtn:"Karte · wo vorhanden / fehlt",
+    photoBtn:"📷 Bildschirm lesen", photoTitle:"Aus dem Foto gelesen", photoLoad:"Alle laden",
+    photoCancel:"Abbrechen", photoEmpty:"Keine Ankünfte im Foto erkannt.",
+    photoRetirar:"leere Container wegnehmen", photoSalida:"Abflug · lässt evtl. Material",
+    photoNotReady:"Die Foto-Lesung ist bereit, aber der Schlüssel fehlt (siehe GUIA-FOTO).",
+    planBtn:"Plan · was wohin bringen", planTitle:"Verteilplan",
+    planEmpty:"Nichts zu bewegen: alles ausgeglichen oder keine Daten.",
+    needOutside:"Von aussen holen", freeSurplus:"Frei übrig (kann weg)",
+    planMore:"Zu viel — hier wegnehmen", planLack:"Fehlt — hierhin bringen",
+    planMoves:"So ausgleichen", planTake:"Bringen", loadWord:"Lade", inWord:"in", leaveWord:"lass",
+    zoneBalance:"Zonen-Bilanz", zoneLevel:"In der Zone ausgleichen",
+    faltaWord:"Fehlt", sobraWord:"Übrig", okWord:"OK", sobraTag:"übrig", faltaTag:"fehlt",
+    stands:"Stands", ok:"OK",
+    weightTitle:"Abzuladendes Gewicht", wagenNeeded:"Benötigte Wagen",
+    calcHint:"Gewicht eingeben zum Berechnen",
+    wagenAtStand:"Wagen am Stand", wagenByWeight:"Wagen nach Gewicht",
+    complete:"Vollständig", otherMat:"Weiteres Material", otherHint:"Negativ = fehlt, positiv = vorhanden/übrig",
+    balance:"Bilanz", wagenTotal:"Wagen — gesamt", needed:"Benötigt", loaded:"Vorhanden",
+    faltanShort:"Fehlen", sobranShort:"Übrig", otherTotal:"Weiteres Material — netto",
+    byZone:"Nach Zone", emptyZone:"Du hast noch an keinem Stand Material erfasst.",
+    noWeight:"Kein Gewicht", mapTitle:"Karte", legendHave:"Vorhanden / übrig", legendMiss:"Fehlt",
+    dayLabel:"Tag", newDay:"Neuer Tag", startNewDay:"Neuen Tag starten",
+    clearConfirm:"Alles erfasste Material löschen und neuen Tag starten?",
+    oldDayMsg:"Diese Daten sind von einem anderen Tag",
+    needShort:"Benötigt", haveShort:"Da", capHave:"da", capNeed:"ben.",
+    plazaComplete:"Platz komplett", plazaPending:"Fehlt noch", tripsWord:"Fahrten", doneWord:"Erledigt", completarBtn:"✅ Erledigt — komplett",
+    labels:{ todo:"Gesamt", wagen:"Wagen", dolly:"Dolly", trailer:"Trailer", wageli:"Degerwage", post:"Postwagen" },
+    hints:{ post:"", wageli:"Geschlossener Wagen", dolly:"", trailer:"" },
+  },
+};
+function faltanTxt(n){ return state.lang==="es" ? "Faltan "+n : n+" fehlen"; }
+function faltanWagenTxt(n){ return state.lang==="es" ? "Faltan "+n+" Wagen" : "Es fehlen "+n+" Wagen"; }
+function sobranWagenTxt(n){ return state.lang==="es" ? "Sobran "+n+" Wagen — se pueden sacar" : n+" Wagen übrig — können abgezogen werden"; }
+function perLoadTxt(n, crew){
+  if (crew>0) return state.lang==="es" ? n+" por carga + "+crew+" crew" : n+" pro Ladung + "+crew+" Crew";
+  return state.lang==="es" ? n+" por carga" : n+" pro Ladung";
+}
+function fromToTxt(from,to){ return state.lang==="es" ? "de "+from+" a "+to : "von "+from+" nach "+to; }
+
+/* ============================================================
+   Estado + persistencia
+   ============================================================ */
+let state = { data:{}, lang:"es", view:{name:"home"}, mapCat:"todo", day:"" };
+
+function load(){
+  try { const d = localStorage.getItem(LS_DATA); if (d) state.data = JSON.parse(d); } catch(e){}
+  try { const l = localStorage.getItem(LS_LANG); if (l) state.lang = l; } catch(e){}
+  try { const dy = localStorage.getItem(LS_DAY); if (dy) state.day = dy; } catch(e){}
+  if (!state.day){ state.day = todayStr(); saveDay(); }
+}
+function save(){
+  try { localStorage.setItem(LS_DATA, JSON.stringify(state.data)); } catch(e){}
+}
+function saveLang(){ try { localStorage.setItem(LS_LANG, state.lang); } catch(e){} }
+function saveDay(){ try { localStorage.setItem(LS_DAY, state.day); } catch(e){} }
+
+function todayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+dd;
+}
+function fmtDay(s){ if(!s) return ""; const p = s.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
+
+function clearNewDay(){
+  const t = T[state.lang];
+  if (!window.confirm(t.clearConfirm)) return;
+  state.data = {};
+  state.day = todayStr();
+  save(); saveDay();
+  state.view = {name:"home"};
+  render();
+}
+
+function emptyStand(){
+  return { weight:"", wagen:{have:0,need:0}, dolly:{need:0,have:0}, trailer:{need:0,have:0}, wageli:{need:0,have:0}, post:{need:0,have:0,kg:""} };
+}
+function getStand(id){
+  if (!state.data[id]) state.data[id] = emptyStand();
+  const s = state.data[id];
+  if (typeof s.wagen !== "object") s.wagen = { have: Number(s.wagen)||0, need:0 };
+  if (s.wagen.need == null) s.wagen.need = 0;
+  MAT_KEYS.forEach(m => { if (m==="wagen") return; if (typeof s[m] !== "object") s[m] = { need:0, have:Number(s[m])||0 }; });
+  if (s.post.kg == null) s.post.kg = "";
+  if (s.retirar == null) s.retirar = 0;
+  if (s.aviso == null) s.aviso = 0;
+  return s;
+}
+// Accesos por material
+function matNeed(id, s, mat){
+  if (mat==="wagen"){
+    const ov = Number((s.wagen && s.wagen.need)||0);
+    if (ov>0) return ov;               // si se dictó a mano, gana
+    return wagenNeeded(s.weight, id);  // si no, lo calcula el peso (÷200 + crew)
+  }
+  if (mat==="post"){
+    const ov = Number((s.post && s.post.need)||0);
+    if (ov>0) return ov;               // si se dictó a mano, gana
+    const w = Number(s.post && s.post.kg)||0;
+    return w>0 ? Math.ceil(w/150) : 0; // 1 postwagen cada 150 kg (kilos propios)
+  }
+  return Number((s[mat]&&s[mat].need)||0);
+}
+function matHave(s, mat){ return Number((s[mat]&&s[mat].have)||0); }
+
+/* ============================================================
+   Lógica
+   ============================================================ */
+function crewFor(id){
+  const a = AREA_OF_STAND[id];
+  return (a && (a.id==="ECHO_N" || a.id==="ECHO_S")) ? 2 : 0;
+}
+function wagenNeeded(weight, id){ const w = Number(weight)||0; if (w<=0) return 0; return Math.ceil(w/KG) + crewFor(id); }
+function isTouched(s){
+  if ((Number(s.weight)||0)>0) return true;
+  return MAT_KEYS.some(m => { const o = s[m]; if (!o) return false; return (Number(o.need)||0)>0 || (Number(o.have)||0)>0; });
+}
+function standItems(s, id){
+  const items = [];
+  MAT_KEYS.forEach(m => {
+    const need = matNeed(id, s, m), have = matHave(s, m);
+    if (need===0 && have===0) return;
+    const d = have - need;
+    if (d!==0) items.push({k:m, v:d});
+  });
+  items.sort((a,b) => a.v - b.v);
+  return items;
+}
+function cellInfo(cat, s, id){
+  const need = matNeed(id, s, cat), have = matHave(s, cat);
+  if (need===0 && have===0) return {state:"empty", val:0};
+  const d = have - need;
+  return {state: d<0?"miss":d>0?"have":"zero", val:d};
+}
+function areaStatus(area){
+  const per = {}; MAT_KEYS.forEach(m => per[m] = {need:0, have:0});
+  let touched=0, deficit=0;
+  area.stands.forEach(id => {
+    const s = state.data[id] || emptyStand();
+    MAT_KEYS.forEach(m => { per[m].need += matNeed(id,s,m); per[m].have += matHave(s,m); });
+    const wn = matNeed(id,s,"wagen"), wh = matHave(s,"wagen");
+    if (wn>0 && wh<wn) deficit += wn-wh;
+    if (isTouched(s)) touched++;
+  });
+  return {per, touched, deficit};
+}
+
+/* ============================================================
+   Utilidades de render
+   ============================================================ */
+function esc(x){ return String(x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function signed(v){ return v>0 ? "+"+v : ""+v; }
+
+/* ============================================================
+   Pantallas
+   ============================================================ */
+function screenHome(){
+  const t = T[state.lang];
+  const groups = [];
+  AREAS.forEach(a => {
+    const last = groups[groups.length-1];
+    if (last && last.parent===a.parent) last.areas.push(a);
+    else groups.push({parent:a.parent, color:a.color, areas:[a]});
+  });
+  let html = '<div class="header"><div class="headTop"><div class="kicker">'+t.kicker+'</div>'+
+    '<div class="langToggle">'+
+      '<button class="langBtn '+(state.lang==="es"?"on":"")+'" data-action="lang" data-lang="es">ES</button>'+
+      '<button class="langBtn '+(state.lang==="de"?"on":"")+'" data-action="lang" data-lang="de">DE</button>'+
+    '</div></div></div>';
+  const isOld = state.day && state.day !== todayStr();
+  html += '<div class="dayBar"><span class="dayText">'+t.dayLabel+': <b>'+fmtDay(state.day)+'</b></span>'+
+    '<button class="dayBtn" data-action="newday">'+t.newDay+'</button></div>';
+  if (isOld) html += '<div class="banner"><span>'+t.oldDayMsg+' ('+fmtDay(state.day)+')</span>'+
+    '<button class="bannerBtn" data-action="newday">'+t.startNewDay+'</button></div>';
+  html += '<div class="actions">'+
+    '<button class="bigBtn photoBtn" data-action="photo"><span>'+t.photoBtn+'</span><span>→</span></button>'+
+    '<button class="bigBtn planBtn" data-action="plan"><span>'+t.planBtn+'</span><span>→</span></button>'+
+    '<button class="bigBtn mapBtn" data-action="map"><span>'+t.mapBtn+'</span><span>→</span></button>'+
+    '<button class="bigBtn balBtn" data-action="balance"><span>'+t.balanceBtn+'</span><span>→</span></button></div>';
+  html += '<div class="groups">';
+  groups.forEach(g => {
+    html += '<div class="group"><div class="groupHead"><span class="dot" style="background:'+g.color+'"></span><span>'+g.parent+'</span></div><div class="areaRow">';
+    g.areas.forEach(a => {
+      const st = areaStatus(a);
+      let chip = "";
+      if (st.deficit>0) chip = '<span class="chipFalta">'+faltanTxt(st.deficit)+'</span>';
+      else if (st.touched>0) chip = '<span class="chipOk">'+t.ok+'</span>';
+      html += '<button class="areaCard" data-action="open-area" data-area="'+a.id+'">'+
+        '<span class="areaLabel">'+a.label+'</span>'+
+        '<span class="areaMeta">'+a.stands.length+' '+t.stands+'</span>'+chip+'</button>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function topbar(title, sub, color, backTo, backArea){
+  return '<div class="topbar" style="border-color:'+color+'">'+
+    '<button class="back" data-action="back" data-to="'+backTo+'" '+(backArea?('data-area="'+backArea+'"'):'')+'>←</button>'+
+    '<div><div class="topTitle">'+title+'</div>'+(sub?('<div class="topSub">'+sub+'</div>'):'')+'</div></div>';
+}
+
+function screenArea(){
+  const t = T[state.lang];
+  const area = AREA_BY_ID[state.view.areaId];
+  let html = topbar(area.label, "", area.color, "home");
+  html += '<div class="standGrid">';
+  area.stands.forEach(id => {
+    const s = state.data[id] || emptyStand();
+    const items = standItems(s, id);
+    const touched = isTouched(s);
+    let chips = "";
+    if (items.length){
+      chips = '<span class="cellChips">';
+      items.forEach(it => {
+        chips += '<span class="cellChip '+(it.v<0?"neg":"pos")+'">'+signed(it.v)+' '+t.labels[it.k]+'</span>';
+      });
+      chips += '</span>';
+    } else if (touched){
+      chips = '<span class="cellDone">✓</span>';
+    }
+    html += '<button class="standCell '+(touched?"on":"")+'" data-action="open-stand" data-stand="'+id+'">'+
+      '<span class="standName tnum">'+id+'</span>'+chips+'</button>';
+  });
+  html += '</div>';
+
+  // Balance de la zona + cómo nivelar (solo si hay datos cargados)
+  const touchedCount = area.stands.filter(id => isTouched(state.data[id]||emptyStand())).length;
+  if (touchedCount>0){
+    const bal = zoneBalance(area);
+    const mats = MAT_KEYS.filter(m => bal[m].falta>0 || bal[m].sobra>0);
+    if (mats.length){
+      html += '<div class="block"><div class="blockTitle">'+t.zoneBalance+'</div><div class="zbGrid">';
+      mats.forEach(m => {
+        const net = bal[m].net;
+        const cls = net<0?"red":net>0?"green":"zero";
+        const tag = net<0?t.faltaWord:net>0?t.sobraWord:t.okWord;
+        const numTxt = net<0?("−"+Math.abs(net)):net>0?("+"+net):"0";
+        html += '<div class="zbTile"><div class="zbNum '+cls+' tnum">'+numTxt+'</div><div class="zbLbl">'+t.labels[m]+'</div><div class="zbTag '+cls+'">'+tag+'</div></div>';
+      });
+      html += '</div></div>';
+    }
+    let movesBody = "";
+    MAT_KEYS.forEach(m => {
+      const rr = routesForMaterial(m, area.stands);
+      if (!rr.routes.length) return;
+      movesBody += '<div class="planSub">'+t.labels[m]+'</div>'+routesHTML(rr, m);
+    });
+    if (movesBody) html += '<div class="block"><div class="blockTitle">'+t.zoneLevel+'</div>'+movesBody+'</div>';
+  }
+
+  return html;
+}
+
+function resInner(need, have, t){
+  if (need===0 && have===0) return '<span class="rNone">–</span>';
+  const d = have - need;
+  if (d<0) return '<span class="rMiss">'+t.faltaWord+' '+Math.abs(d)+'</span>';
+  if (d>0) return '<span class="rSob">'+t.sobraWord+' '+d+'</span>';
+  return '<span class="rOk">✓</span>';
+}
+function haveColor(need, have){
+  if (need===0 && have===0) return "#cbd5e1";
+  return (have-need)<0 ? "#D64545" : "#1F9D57";
+}
+function progInfo(need, have){
+  const pct = need>0 ? Math.max(0,Math.min(1, have/need))*100 : (have>0?100:0);
+  const col = ((have-need)>=0 && (need>0||have>0)) ? "#1F9D57" : "#2563eb";
+  return {pct, col};
+}
+function refreshMat(id, s, m, t){
+  const need = matNeed(id,s,m), have = matHave(s,m);
+  const hb = document.getElementById("have-"+m); if (hb) hb.style.color = haveColor(need,have);
+  const r = document.getElementById("res-"+m); if (r) r.innerHTML = resInner(need,have,t);
+  const p = document.getElementById("prog-"+m);
+  if (p){ const pi = progInfo(need,have); p.style.width = pi.pct+"%"; p.style.background = pi.col; }
+}
+function standStatusHTML(id, s, t){
+  if (!isTouched(s)) return "";
+  const pend = MAT_KEYS.filter(m => matHave(s,m) < matNeed(id,s,m));
+  if (!pend.length) return '<div class="stDoneBar">✓ '+t.plazaComplete+'</div>';
+  return '<div class="stPendBar">'+t.plazaPending+': '+pend.map(m=>t.labels[m]).join(", ")+'</div>';
+}
+function refreshStandStatus(id, s, t){
+  const el = document.getElementById("standStatus");
+  if (el) el.innerHTML = standStatusHTML(id, s, t);
+}
+
+function screenStand(){
+  const t = T[state.lang];
+  const id = state.view.standId;
+  const s = getStand(id);
+  const area = AREA_OF_STAND[id];
+  const wNeed = wagenNeeded(s.weight, id);
+  const loads = Math.ceil((Number(s.weight)||0)/KG);
+
+  let html = topbar(id, area.label, area.color, "area", area.id);
+
+  // Peso (calcula Necesito de Wagen)
+  html += '<div class="block"><div class="blockTitle">'+t.weightTitle+'</div>'+
+    '<div class="weightRow"><input class="weightInput tnum" id="weightInput" type="number" inputmode="numeric" placeholder="0" value="'+esc(s.weight)+'" /><span class="unit">kg</span></div>'+
+    '<div class="blockHint" id="needBreak">'+(wNeed>0?perLoadTxt(loads, crewFor(id)):t.calcHint)+'</div></div>';
+
+  // Estado de la plaza
+  html += '<div id="standStatus">'+standStatusHTML(id, s, t)+'</div>';
+  html += '<div style="padding:0 16px"><button class="bigBtn completeBtn" data-action="complete-stand"><span>'+t.completarBtn+'</span></button></div>';
+  if (Number(s.retirar)>0) html += '<div class="retirarBar">📤 '+s.retirar+' '+t.photoRetirar+'</div>';
+  if (s.aviso) html += '<div class="salidaBar">↗ '+t.photoSalida+'</div>';
+
+  // Una tarjeta por material
+  MAT_KEYS.forEach(m => {
+    const need = matNeed(id, s, m), have = matHave(s, m);
+    const pi = progInfo(need, have);
+    const kgRow = (m==="post")
+      ? '<div class="postKgRow"><span class="ctrlLbl">kg post</span><input class="postKgInp tnum" id="postkg" inputmode="numeric" placeholder="0" value="'+esc(s.post.kg||"")+'" /><span class="postKgHint">÷150</span></div>'
+      : '';
+    const hayBox = '<div class="ndBox hay"><div class="ndLbl">'+t.haveShort+'</div><div class="miniStepRow">'+
+      '<button class="hvBtn2 minus" data-action="adj" data-mat="'+m+'" data-fld="have" data-delta="-1">−</button>'+
+      '<input class="stepNum tnum" id="have-'+m+'" data-mat="'+m+'" data-fld="have" inputmode="numeric" placeholder="0" value="'+(have>0?have:"")+'" style="color:'+haveColor(need,have)+'" />'+
+      '<button class="hvBtn2 plus" data-action="adj" data-mat="'+m+'" data-fld="have" data-delta="1">+</button>'+
+      '</div></div>';
+    const necBox = (m==="wagen" || m==="post")
+      ? '<div class="ndBox nec"><div class="ndLbl">'+t.needShort+'</div><div class="necFixWrap"><span class="needFix2 tnum" id="need-'+m+'">'+need+'</span></div></div>'
+      : '<div class="ndBox nec"><div class="ndLbl">'+t.needShort+'</div><div class="miniStepRow">'+
+          '<button class="hvBtn2 minus" data-action="adj" data-mat="'+m+'" data-fld="need" data-delta="-1">−</button>'+
+          '<input class="stepNum tnum blue" id="need-'+m+'" data-mat="'+m+'" data-fld="need" inputmode="numeric" placeholder="0" value="'+(need>0?need:"")+'" />'+
+          '<button class="hvBtn2 plus" data-action="adj" data-mat="'+m+'" data-fld="need" data-delta="1">+</button>'+
+        '</div></div>';
+    html += '<div class="matCard">'+
+      '<div class="matTop"><span class="matName3">'+t.labels[m]+'</span>'+
+        '<span class="matRes" id="res-'+m+'">'+resInner(need, have, t)+'</span></div>'+
+      kgRow+
+      '<div class="ndRow">'+hayBox+necBox+'</div>'+
+      '<button class="doneBtn" data-action="done-mat" data-mat="'+m+'">✓ '+t.doneWord+'</button>'+
+      '<div class="progWrap"><div class="progFill" id="prog-'+m+'" style="width:'+pi.pct+'%;background:'+pi.col+'"></div></div>'+
+      '</div>';
+  });
+  return html;
+}
+
+function miniStat(label, val, tone){
+  const col = tone==="falta"?"#D64545":tone==="sobra"?"#1F9D57":"#1e293b";
+  const op = tone==="dim"?0.35:1;
+  return '<div class="miniStat"><span class="miniStatV tnum" style="color:'+col+';opacity:'+op+'">'+val+'</span><span class="miniStatL">'+label+'</span></div>';
+}
+
+function screenBalance(){
+  const t = T[state.lang];
+  const rows = AREAS.map(a => Object.assign({area:a}, areaStatus(a)));
+  const g = {}; MAT_KEYS.forEach(m => g[m] = {need:0, have:0});
+  rows.forEach(r => MAT_KEYS.forEach(m => { g[m].need += r.per[m].need; g[m].have += r.per[m].have; }));
+
+  let html = topbar(t.balance, "", "#1e293b", "home");
+
+  html += '<div class="block"><div class="blockTitle">'+t.balance+'</div><div class="zbGrid">';
+  MAT_KEYS.forEach(m => {
+    if (g[m].need===0 && g[m].have===0) return;
+    const net = g[m].have - g[m].need;
+    const cls = net<0?"red":net>0?"green":"zero";
+    const tag = net<0?t.faltaWord:net>0?t.sobraWord:t.okWord;
+    const numTxt = net<0?("−"+Math.abs(net)):net>0?("+"+net):"0";
+    html += '<div class="zbTile"><div class="zbNum '+cls+' tnum">'+numTxt+'</div><div class="zbLbl">'+t.labels[m]+'</div><div class="zbTag '+cls+'">'+tag+'</div></div>';
+  });
+  html += '</div></div>';
+
+  html += '<div class="block"><div class="blockTitle">'+t.byZone+'</div><div class="zoneList">';
+  const touchedRows = rows.filter(r => r.touched>0);
+  if (!touchedRows.length) html += '<div class="empty">'+t.emptyZone+'</div>';
+  touchedRows.forEach(r => {
+    const wn = r.per.wagen.need, wh = r.per.wagen.have, d = wh-wn;
+    let chip;
+    if (wn>0){
+      if (d<0) chip = '<span class="chipFalta">'+faltanTxt(Math.abs(d))+'</span>';
+      else if (d>0) chip = '<span class="chipSobra">'+t.sobraWord+' '+d+'</span>';
+      else chip = '<span class="chipOk">'+t.ok+'</span>';
+    } else chip = '<span class="chipMuted">'+t.noWeight+'</span>';
+    html += '<div class="zoneRow"><div class="zoneRowTop"><span class="zoneName"><span class="dotSm" style="background:'+r.area.color+'"></span>'+r.area.label+'</span>'+chip+'</div><div class="zoneStats">';
+    MAT_KEYS.forEach(m => {
+      const has = r.per[m].need>0 || r.per[m].have>0;
+      const net = r.per[m].have - r.per[m].need;
+      html += miniStat(t.labels[m], has?signed(net):"–", !has?"dim":net<0?"falta":net>0?"sobra":"dim");
+    });
+    html += '</div></div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function screenMap(){
+  const t = T[state.lang];
+  let html = topbar(t.mapTitle, "", "#1e293b", "home");
+  html += '<div class="mapControls"><div class="mapPicker">';
+  MAP_CATS.forEach(k => {
+    html += '<button class="pill '+(state.mapCat===k?"on":"")+'" data-action="mapcat" data-cat="'+k+'">'+t.labels[k]+'</button>';
+  });
+  html += '</div><div class="legend">'+
+    '<span class="legendItem"><span class="legendSq" style="background:#1F9D57"></span>'+t.legendHave+'</span>'+
+    '<span class="legendItem"><span class="legendSq" style="background:#D64545"></span>'+t.legendMiss+'</span>'+
+    '</div></div>';
+
+  if (state.mapCat==="todo") html += mapGeneral();
+  else html += mapHeat(state.mapCat);
+  return html;
+}
+
+function mapGeneral(){
+  const t = T[state.lang];
+  let out = '<div style="padding-bottom:20px">';
+  let any = false;
+  AREAS.forEach(a => {
+    const rows = a.stands.map(id => {
+      const s = state.data[id]||emptyStand();
+      const items = standItems(s, id);
+      return {id, items, complete: isTouched(s) && items.length===0};
+    }).filter(r => r.items.length>0 || r.complete);
+    if (!rows.length) return;
+    any = true;
+    out += '<div class="mapZone"><div class="mapZoneHead"><span class="dotSm" style="background:'+a.color+'"></span>'+a.label+'</div><div class="genList">';
+    rows.forEach(r => {
+      if (r.complete){
+        out += '<button class="genRow" style="border-left:5px solid #1F9D57" data-action="open-stand" data-stand="'+r.id+'">'+
+          '<span class="genHead"><span class="genId tnum">'+r.id+'</span>'+
+          '<span class="genTags"><span class="tagHave">✓ '+t.complete+'</span></span></span></button>';
+        return;
+      }
+      const hasMiss = r.items.some(it => it.v<0);
+      const hasHave = r.items.some(it => it.v>0);
+      const bar = hasMiss ? "#D64545" : "#1F9D57";
+      out += '<button class="genRow" style="border-left:5px solid '+bar+'" data-action="open-stand" data-stand="'+r.id+'">'+
+        '<span class="genHead"><span class="genId tnum">'+r.id+'</span><span class="genTags">'+
+        (hasMiss?'<span class="tagMiss">'+t.legendMiss+'</span>':'')+
+        (hasHave?'<span class="tagHave">'+t.legendHave+'</span>':'')+
+        '</span></span><span class="genChips">';
+      r.items.forEach(it => {
+        out += '<span class="genChip '+(it.v<0?"neg":"pos")+'">'+signed(it.v)+' '+t.labels[it.k]+'</span>';
+      });
+      out += '</span></button>';
+    });
+    out += '</div></div>';
+  });
+  if (!any) out += '<div class="empty" style="padding:24px 20px">'+t.emptyZone+'</div>';
+  out += '</div>';
+  return out;
+}
+
+function mapHeat(cat){
+  let out = '<div style="padding-bottom:20px">';
+  AREAS.forEach(a => {
+    out += '<div class="mapZone"><div class="mapZoneHead"><span class="dotSm" style="background:'+a.color+'"></span>'+a.label+'</div><div class="mapGrid">';
+    a.stands.forEach(id => {
+      const s = state.data[id]||emptyStand();
+      const info = cellInfo(cat, s, id);
+      const cls = info.state==="miss"?"cMiss":info.state==="have"?"cHave":info.state==="zero"?"cZero":"cEmpty";
+      const valTxt = (info.state==="miss"||info.state==="have") ? '<span class="mapCellVal tnum">'+signed(info.val)+'</span>' : '';
+      out += '<button class="mapCell '+cls+'" data-action="open-stand" data-stand="'+id+'"><span class="mapCellId tnum">'+id+'</span>'+valTxt+'</button>';
+    });
+    out += '</div></div>';
+  });
+  out += '</div>';
+  return out;
+}
+
+/* ============================================================
+   Plan de traslados (inteligente)
+   ============================================================ */
+function zoneBalance(area){
+  const res = {};
+  MAT_KEYS.forEach(mat => {
+    let net = 0, falta = 0, sobra = 0;
+    area.stands.forEach(id => {
+      const s = state.data[id] || emptyStand();
+      const need = matNeed(id, s, mat), have = matHave(s, mat);
+      if (need===0 && have===0) return;
+      const q = have - need;
+      net += q;
+      if (q<0) falta += -q; else if (q>0) sobra += q;
+    });
+    res[mat] = {net, falta, sobra};
+  });
+  return res;
+}
+
+function planForMaterial(mat, standIds){
+  const ids = standIds || ALL_STANDS;
+  const sup = [], def = [];
+  ids.forEach(id => {
+    const a = AREA_OF_STAND[id];
+    const s = state.data[id] || emptyStand();
+    const need = matNeed(id, s, mat), have = matHave(s, mat);
+    if (need===0 && have===0) return;
+    const q = have - need;
+    if (q>0) sup.push({id, zone:a.parent, qty:q});
+    else if (q<0) def.push({id, zone:a.parent, qty:-q});
+  });
+
+  // copia para mostrar "hay de más" y "falta" (antes de repartir)
+  const rawSup = sup.map(x => ({id:x.id, qty:x.qty})).sort((a,b) => b.qty-a.qty);
+  const rawDef = def.map(x => ({id:x.id, qty:x.qty})).sort((a,b) => b.qty-a.qty);
+
+  // emparejar lo más grande primero = menos movimientos
+  sup.sort((a,b) => b.qty-a.qty);
+  def.sort((a,b) => b.qty-a.qty);
+
+  const moves = [];
+  function match(sameZoneOnly){
+    def.forEach(d => {
+      if (d.qty<=0) return;
+      sup.forEach(sp => {
+        if (d.qty<=0 || sp.qty<=0) return;
+        if (sameZoneOnly && sp.zone!==d.zone) return;
+        const take = Math.min(sp.qty, d.qty);
+        moves.push({from:sp.id, to:d.id, qty:take, sameZone:sp.zone===d.zone});
+        sp.qty -= take; d.qty -= take;
+      });
+    });
+  }
+  match(true);
+  match(false);
+
+  // agrupar por plaza de destino (cómo completar cada una)
+  const byDest = {};
+  moves.forEach(mv => {
+    if (!byDest[mv.to]) byDest[mv.to] = {to:mv.to, sources:[], short:0};
+    byDest[mv.to].sources.push({from:mv.from, qty:mv.qty});
+  });
+  def.forEach(d => { if (d.qty>0 && byDest[d.id]) byDest[d.id].short += d.qty; });
+
+  const remainingDef = def.reduce((x,d) => x + Math.max(0,d.qty), 0);
+  const remainingSup = sup.reduce((x,s) => x + Math.max(0,s.qty), 0);
+  return {moves, byDest, remainingDef, remainingSup, rawSup, rawDef};
+}
+
+function bringTxt(sources){
+  const verb = state.lang==="es" ? "Traé " : "Hol ";
+  const sep = state.lang==="es" ? " de " : " von ";
+  return verb + sources.map(s => s.qty + sep + s.from).join("   ·   ");
+}
+function outsideTxt(n){ return state.lang==="es" ? "Faltan "+n+" de afuera" : n+" von aussen holen"; }
+function tripsLineTxt(trips, cap){
+  const v = state.lang==="es" ? (trips===1?"1 viaje":trips+" viajes") : (trips===1?"1 Fahrt":trips+" Fahrten");
+  if (cap>=99) return v;
+  return v + (state.lang==="es" ? " · hasta "+cap+" por viaje" : " · bis "+cap+" pro Fahrt");
+}
+function viajesTxt(n){
+  if (state.lang==="es") return n + (n===1 ? " viaje" : " viajes");
+  return n + (n===1 ? " Fahrt" : " Fahrten");
+}
+function routesForMaterial(mat, standIds){
+  const p = planForMaterial(mat, standIds);
+  const cap = CAPS[mat] || 99;
+  const groups = {};
+  p.moves.forEach(mv => {
+    const zone = AREA_OF_STAND[mv.to].parent;
+    const key = mv.from + "|" + zone;
+    if (!groups[key]) groups[key] = { from: mv.from, zone, stops: [] };
+    groups[key].stops.push({ to: mv.to, qty: mv.qty });
+  });
+  const routes = Object.keys(groups).map(k => {
+    const g = groups[k];
+    g.stops.sort((a,b) => a.to < b.to ? -1 : 1);
+    const total = g.stops.reduce((x,s) => x+s.qty, 0);
+    return { from:g.from, zone:g.zone, stops:g.stops, total, trips: Math.ceil(total/cap) };
+  });
+  return { routes, remainingDef: p.remainingDef, remainingSup: p.remainingSup };
+}
+
+function routesHTML(rr, mat){
+  const t = T[state.lang];
+  let out = "";
+  rr.routes.forEach(rt => {
+    if (rt.stops.length === 1){
+      const st = rt.stops[0];
+      out += '<button class="mvRow" data-action="open-stand" data-stand="'+st.to+'">'+
+        '<span class="mvSide"><span class="mvStand green tnum">'+rt.from+'</span><span class="mvCap">'+t.sobraTag+'</span></span>'+
+        '<span class="mvArrow">→</span>'+
+        '<span class="mvSide"><span class="mvStand red tnum">'+st.to+'</span><span class="mvCap">'+t.faltaTag+'</span></span>'+
+        '<span class="mvQty tnum">'+st.qty+(rt.trips>1?'<span class="mvTrips">'+viajesTxt(rt.trips)+'</span>':'')+'</span>'+
+        '</button>';
+    } else {
+      let drops = "";
+      rt.stops.forEach(st => {
+        drops += '<button class="dropRow" data-action="open-stand" data-stand="'+st.to+'">'+
+          '<span class="dropArrow">→</span>'+t.leaveWord+' <b class="tnum">'+st.qty+'</b> '+t.inWord+' '+
+          '<span class="mvStand red sm tnum">'+st.to+'</span></button>';
+      });
+      out += '<div class="routeCard">'+
+        '<div class="routeHead"><span class="routeLoad">'+t.loadWord+' <b class="tnum">'+rt.total+'</b> '+t.inWord+' '+
+          '<span class="mvStand green tnum">'+rt.from+'</span></span>'+
+          '<span class="mvTrips">'+viajesTxt(rt.trips)+'</span></div>'+
+        '<div class="dropList">'+drops+'</div>'+
+        '</div>';
+    }
+  });
+  if (rr.remainingDef>0) out += '<div class="planNote miss">'+t.needOutside+': '+rr.remainingDef+'</div>';
+  return out;
+}
+
+function screenPlan(){
+  const t = T[state.lang];
+  let html = topbar(t.planTitle, "", "#2563eb", "home");
+  let any = false;
+  let body = "";
+  MAP_CATS.filter(k => k!=="todo").forEach(mat => {
+    const p = planForMaterial(mat);
+    if (!p.rawSup.length && !p.rawDef.length) return;
+    any = true;
+    body += '<div class="block"><div class="blockTitle">'+t.labels[mat]+'</div>';
+
+    // Dónde hay de más
+    if (p.rawSup.length){
+      body += '<div class="planSub more">'+t.planMore+'</div><div class="planChips">';
+      p.rawSup.forEach(x => { body += '<span class="pmMore tnum">'+x.id+' +'+x.qty+'</span>'; });
+      body += '</div>';
+    }
+    // Dónde falta
+    if (p.rawDef.length){
+      body += '<div class="planSub lack">'+t.planLack+'</div><div class="planChips">';
+      p.rawDef.forEach(x => { body += '<span class="pmLack tnum">'+x.id+' −'+x.qty+'</span>'; });
+      body += '</div>';
+    }
+    // Cómo nivelar (por rutas: cargá una vez y dejá en varias)
+    const rr = routesForMaterial(mat);
+    if (rr.routes.length){
+      body += '<div class="planSub">'+t.planMoves+'</div>'+routesHTML(rr, mat);
+    }
+    if (p.remainingDef>0) body += '<div class="planNote miss">'+t.needOutside+': '+p.remainingDef+'</div>';
+    if (p.remainingSup>0) body += '<div class="planNote have">'+t.freeSurplus+': '+p.remainingSup+'</div>';
+    body += '</div>';
+  });
+  if (!any) body = '<div class="block"><div class="empty" style="padding:6px 0">'+t.planEmpty+'</div></div>';
+  return html + body;
+}
+
+/* ============================================================
+   Lectura por foto (llegadas → Necesito, salidas → aviso)
+   ============================================================ */
+function mountPhotoUI(){
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = "image/*"; inp.capture = "environment";
+  inp.id = "photoInput"; inp.style.display = "none";
+  inp.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => handlePhoto(reader.result);
+    reader.readAsDataURL(file);
+    inp.value = "";
+  });
+  document.body.appendChild(inp);
+}
+
+async function handlePhoto(dataUrl){
+  const t = T[state.lang];
+  toast("Leyendo la pantalla…");
+  try {
+    const resp = await fetch(PHOTO_URL, { method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({ image: dataUrl, stands: ALL_STANDS }) });
+    if (!resp.ok) throw new Error("http "+resp.status);
+    const j = await resp.json();
+    if (!j || j.error || !Array.isArray(j.flights)) throw new Error("noai");
+    state.photo = j.flights;
+    state.view = { name:"photo" };
+    render();
+  } catch(e){
+    toast(t.photoNotReady);
+  }
+}
+
+function applyPhotoFlights(flights){
+  flights.forEach(f => {
+    if (!f.stand || !AREA_OF_STAND[f.stand]) return;
+    const s = getStand(f.stand);
+    if (f.isDeparture){
+      s.aviso = 1;
+    } else {
+      if (Number(f.wagenKg)>0) s.weight = String(f.wagenKg);
+      if (Number(f.postKg)>0) s.post.kg = String(f.postKg);
+      if (Number(f.dolly)>0) s.dolly.need = Number(f.dolly);
+      if (Number(f.trailer)>0) s.trailer.need = Number(f.trailer);
+      s.retirar = Number(f.empties)>0 ? Number(f.empties) : 0;
+    }
+  });
+  save();
+}
+
+function screenPhoto(){
+  const t = T[state.lang];
+  const flights = state.photo || [];
+  let html = topbar(t.photoTitle, "", "#1F9D57", "home");
+  const arr = flights.filter(f => !f.isDeparture && f.stand && AREA_OF_STAND[f.stand]);
+  const dep = flights.filter(f => f.isDeparture && f.stand && AREA_OF_STAND[f.stand]);
+
+  if (!arr.length && !dep.length){
+    html += '<div class="block"><div class="empty" style="padding:6px 0">'+t.photoEmpty+'</div></div>';
+    return html;
+  }
+
+  arr.forEach(f => {
+    const wNeed = f.wagenKg>0 ? wagenNeeded(String(f.wagenKg), f.stand) : 0;
+    const pNeed = f.postKg>0 ? Math.ceil(Number(f.postKg)/150) : 0;
+    let chips = "";
+    if (wNeed>0) chips += '<span class="pvChip">Wagen '+wNeed+'</span>';
+    if (pNeed>0) chips += '<span class="pvChip">Postwagen '+pNeed+'</span>';
+    if (Number(f.dolly)>0) chips += '<span class="pvChip">Dolly '+f.dolly+'</span>';
+    if (Number(f.trailer)>0) chips += '<span class="pvChip">Tráiler '+f.trailer+'</span>';
+    const ret = Number(f.empties)>0 ? '<div class="pvRetirar">📤 '+f.empties+' '+t.photoRetirar+'</div>' : '';
+    html += '<div class="block"><div class="pvHead"><span class="pvStand tnum">'+f.stand+'</span>'+
+      '<span class="pvFlight">'+(f.flight||"")+(f.type?(" · "+f.type):"")+'</span></div>'+
+      '<div class="pvChips">'+(chips||'<span class="pvNone">—</span>')+'</div>'+ret+'</div>';
+  });
+
+  dep.forEach(f => {
+    html += '<div class="block pvDep"><span class="pvStand tnum">'+f.stand+'</span> '+
+      '<span class="pvDepTxt">↗ '+(f.flight||"")+(f.type?(" ("+f.type+")"):"")+' · '+t.photoSalida+'</span></div>';
+  });
+
+  html += '<div class="actions" style="padding:6px 16px 20px">'+
+    '<button class="bigBtn balBtn" data-action="photo-load"><span>'+t.photoLoad+'</span><span>→</span></button>'+
+    '<button class="bigBtn mapBtn" data-action="back" data-to="home"><span>'+t.photoCancel+'</span></button></div>';
+  return html;
+}
+function render(){
+  const frame = document.getElementById("frame");
+  let html = "";
+  switch(state.view.name){
+    case "home": html = screenHome(); break;
+    case "area": html = screenArea(); break;
+    case "stand": html = screenStand(); break;
+    case "balance": html = screenBalance(); break;
+    case "map": html = screenMap(); break;
+    case "plan": html = screenPlan(); break;
+    case "photo": html = screenPhoto(); break;
+  }
+  frame.innerHTML = html;
+  frame.scrollIntoView({block:"start"});
+  window.scrollTo(0,0);
+}
+
+/* ============================================================
+   Eventos
+   ============================================================ */
+document.addEventListener("click", function(e){
+  const el = e.target.closest("[data-action]");
+  if (!el) return;
+  const action = el.dataset.action;
+
+  if (action==="lang"){ state.lang = el.dataset.lang; saveLang(); render(); return; }
+  if (action==="newday"){ clearNewDay(); return; }
+  if (action==="map"){ state.view = {name:"map"}; render(); return; }
+  if (action==="plan"){ state.view = {name:"plan"}; render(); return; }
+  if (action==="photo"){ const el2 = document.getElementById("photoInput"); if (el2) el2.click(); return; }
+  if (action==="photo-load"){ applyPhotoFlights(state.photo||[]); state.photo=null; state.view={name:"home"}; render(); toast("✓ Cargado"); return; }
+  if (action==="balance"){ state.view = {name:"balance"}; render(); return; }
+  if (action==="open-area"){ state.view = {name:"area", areaId: el.dataset.area}; render(); return; }
+  if (action==="open-stand"){ state.view = {name:"stand", standId: el.dataset.stand}; render(); return; }
+  if (action==="mapcat"){ state.mapCat = el.dataset.cat; render(); return; }
+  if (action==="back"){
+    const to = el.dataset.to;
+    if (to==="area") state.view = {name:"area", areaId: el.dataset.area};
+    else state.view = {name:"home"};
+    render(); return;
+  }
+  if (action==="complete-stand"){
+    const id = state.view.standId;
+    const s = getStand(id);
+    MAT_KEYS.forEach(m => {
+      const need = matNeed(id, s, m);
+      if (!s[m]) s[m] = (m==="wagen" ? {have:0,need:0} : {need:0,have:0});
+      s[m].have = need;
+    });
+    save(); render(); toast("✓ "+id+" completo");
+    return;
+  }
+  if (action==="adj"){
+    const id = state.view.standId;
+    const mat = el.dataset.mat;
+    const fld = el.dataset.fld || "have";
+    const delta = parseInt(el.dataset.delta,10);
+    const s = getStand(id);
+    if (!s[mat]) s[mat] = (mat==="wagen" ? {have:0,need:0} : {need:0, have:0});
+    let v = (Number(s[mat][fld])||0) + delta;
+    if (v<0) v = 0;
+    s[mat][fld] = v; save();
+    const inp = document.getElementById(fld+"-"+mat);
+    if (inp && inp.tagName==="INPUT") inp.value = (v>0 ? v : "");
+    const t = T[state.lang];
+    refreshMat(id, s, mat, t);
+    refreshStandStatus(id, s, t);
+    return;
+  }
+  if (action==="done-mat"){
+    const id = state.view.standId;
+    const mat = el.dataset.mat;
+    const s = getStand(id);
+    const need = matNeed(id, s, mat);
+    if (!s[mat]) s[mat] = (mat==="wagen" ? {have:0,need:0} : {need:0, have:0});
+    s[mat].have = need; save();
+    const inp = document.getElementById("have-"+mat);
+    if (inp && inp.tagName==="INPUT") inp.value = (need>0 ? need : "");
+    const t = T[state.lang];
+    refreshMat(id, s, mat, t);
+    refreshStandStatus(id, s, t);
+    return;
+  }
+});
+
+// Escritura directa en inputs (no re-render, para no perder el cursor)
+document.addEventListener("input", function(e){
+  const el = e.target;
+  const t = T[state.lang];
+  if (el.id==="weightInput"){
+    const id = state.view.standId;
+    const s = getStand(id);
+    s.weight = el.value; save();
+    const wNeed = wagenNeeded(s.weight, id);
+    const loads = Math.ceil((Number(s.weight)||0)/KG);
+    const nb = document.getElementById("needBreak");
+    if (nb) nb.textContent = wNeed>0 ? perLoadTxt(loads, crewFor(id)) : t.calcHint;
+    const nw = document.getElementById("need-wagen");
+    if (nw) nw.textContent = wNeed;
+    refreshMat(id, s, "wagen", t);
+    refreshStandStatus(id, s, t);
+    return;
+  }
+  if (el.id==="postkg"){
+    const id = state.view.standId;
+    const s = getStand(id);
+    let str = el.value.replace(/[^0-9]/g,"").replace(/^0+(?=\d)/,"");
+    el.value = str;
+    s.post.kg = str; save();
+    const np = document.getElementById("need-post");
+    if (np) np.textContent = matNeed(id, s, "post");
+    refreshMat(id, s, "post", t);
+    refreshStandStatus(id, s, t);
+    return;
+  }
+  if (el.dataset && el.dataset.mat){
+    const id = state.view.standId;
+    const mat = el.dataset.mat, fld = el.dataset.fld;
+    let str = el.value.replace(/[^0-9]/g,"");
+    str = str.replace(/^0+(?=\d)/,""); // sin ceros a la izquierda
+    el.value = str;
+    const val = str==="" ? 0 : parseInt(str,10);
+    const s = getStand(id);
+    if (!s[mat]) s[mat] = (mat==="wagen" ? {have:0} : {need:0, have:0});
+    s[mat][fld] = val; save();
+    refreshMat(id, s, mat, t);
+    refreshStandStatus(id, s, t);
+    return;
+  }
+});
+
+/* ============================================================
+   Carga por voz (español)
+   ============================================================ */
+const PHON = { echo:"e", eco:"e", alpha:"a", alfa:"a", bravo:"b", charlie:"c", charli:"c", delta:"d", foxtrot:"f", fox:"f", golf:"g", hotel:"h", india:"i", papa:"p", tango:"t", whiskey:"w", whisky:"w" };
+const NUM = { cero:0, un:1, uno:1, una:1, dos:2, tres:3, cuatro:4, cinco:5, seis:6, siete:7, ocho:8, nueve:9, diez:10, once:11, doce:12, trece:13, catorce:14, quince:15, dieciseis:16, "dieciséis":16, diecisiete:17, dieciocho:18, diecinueve:19, veinte:20, veintiuno:21, veintidos:22, "veintidós":22, veintitres:23, "veintitrés":23, veinticuatro:24, veinticinco:25, veintiseis:26, veintisiete:27, veintiocho:28, veintinueve:29, treinta:30, cuarenta:40, cincuenta:50, sesenta:60, setenta:70, ochenta:80, noventa:90 };
+const VOICE_MAT = {
+  wagen: ["wagen","wagenes","wageli","wagelis","wagueli","waguelis","bagueli","gagueli","carro","carros"],
+  dolly: ["dolly","dollys","dollis","doli","dolis","dollies","doly"],
+  trailer: ["trailer","trailers","traailer","treiler","treilers","traila","trailel"],
+  wageli: ["degerwage","deguerwage","deger","deguer","degerwagen","degel","cerrado","cerrados"],
+  post: ["postwagen","postwagenes","post","posts","poste","postes"]
+};
+const MAT_LOOKUP = {}; Object.keys(VOICE_MAT).forEach(k => VOICE_MAT[k].forEach(syn => MAT_LOOKUP[syn] = k));
+const SMART_URL = "/api/parse";
+const PHOTO_URL = "/api/photo";
+const SMART_ON = (location.protocol==="http:" || location.protocol==="https:");
+function matchMaterial(w){
+  if (MAT_LOOKUP[w]) return MAT_LOOKUP[w];
+  const s = w.replace(/s$/,"");
+  if (MAT_LOOKUP[s]) return MAT_LOOKUP[s];
+  if (w.length < 4) return null;
+  for (const k in VOICE_MAT){
+    for (const syn of VOICE_MAT[k]){
+      if (syn.length>=4 && (w.slice(0,4)===syn.slice(0,4))) return k;
+    }
+  }
+  return null;
+}
+
+function wordsToNumbers(tokens){
+  const out = [];
+  for (let i=0;i<tokens.length;i++){
+    const w = tokens[i];
+    if (w in NUM){
+      let val = NUM[w];
+      if (val>=30 && val%10===0 && tokens[i+1]==="y" && (tokens[i+2] in NUM) && NUM[tokens[i+2]]<10){ val += NUM[tokens[i+2]]; i+=2; }
+      out.push(String(val));
+    } else out.push(w);
+  }
+  return out;
+}
+
+function parseVoice(transcript){
+  let txt = transcript.toLowerCase();
+  txt = txt.replace(/[.,;:!¡¿?]/g," ");
+  txt = txt.replace(/([a-z])(\d)/g,"$1 $2").replace(/(\d)([a-z])/g,"$1 $2");
+  let tokens = txt.split(/\s+/).filter(Boolean).map(w => PHON[w] || w);
+  tokens = wordsToNumbers(tokens);
+
+  const consumed = {};
+  let stand = null;
+  for (let i=0;i<tokens.length-1;i++){
+    if (/^[a-z]$/.test(tokens[i]) && /^\d+$/.test(tokens[i+1])){
+      const cand = (tokens[i] + tokens[i+1]).toUpperCase();
+      if (AREA_OF_STAND[cand]){ stand = cand; consumed[i]=true; consumed[i+1]=true; break; }
+    }
+  }
+
+  const have = {}, need = {}, adjust = {}; let weight = null, postKg = null;
+  let pendingNum = null, op = null, weightNext = false, mode = "have";
+  for (let i=0;i<tokens.length;i++){
+    if (consumed[i]) continue;
+    const w = tokens[i];
+    if (/^\d+$/.test(w)){ if (weightNext){ weight = parseInt(w,10); weightNext=false; } else pendingNum = parseInt(w,10); continue; }
+    if (w==="tengo"||w==="hay"||w==="tiene"||w==="tienen"||w==="tenemos"){ mode="have"; continue; }
+    if (w==="necesito"||w==="necesita"||w==="necesitan"||w==="necesitamos"||w==="pide"||w==="pone"){ mode="need"; continue; }
+    if (w==="peso"||w==="pesa"){ weightNext = true; continue; }
+    if (w==="kilos"||w==="kilo"||w==="kg"||w==="kilogramos"||w==="kilogramo"){ if (pendingNum!=null){ weight = pendingNum; pendingNum = null; } continue; }
+    if (w==="mas"||w==="más"||w==="sumar"||w==="suma"||w==="agrega"||w==="agregar"){ op="mas"; continue; }
+    if (w==="menos"||w==="restar"||w==="resta"||w==="saca"||w==="sacar"||w==="quita"||w==="quitar"){ op="menos"; continue; }
+    const mk = matchMaterial(w);
+    if (mk){
+      // Postwagen con kilos propios: "postwagen 300 kilos"
+      if (mk==="post" && /^\d+$/.test(tokens[i+1]||"") && /^(kilos|kilo|kg|kilogramos|kilogramo)$/.test(tokens[i+2]||"")){
+        postKg = parseInt(tokens[i+1],10); consumed[i+1]=true; consumed[i+2]=true; pendingNum=null; op=null; continue;
+      }
+      let q = pendingNum;
+      if (q==null && /^\d+$/.test(tokens[i+1]||"")){ q = parseInt(tokens[i+1],10); consumed[i+1]=true; }
+      if (op){ adjust[mk] = (adjust[mk]||0) + (op==="menos" ? -(q==null?1:q) : (q==null?1:q)); }
+      else if (q!=null){ if (mode==="need") need[mk] = q; else have[mk] = q; }
+      pendingNum = null; op = null; continue;
+    }
+    pendingNum = null; op = null;
+  }
+  return { stand, weight, postKg, have, need, adjust };
+}
+
+function toast(msg){
+  const el = document.getElementById("toast");
+  if (!el) return;
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove("show"), 3800);
+}
+
+function applyParsed(r, heard){
+  heard = (heard||"").trim();
+  const okKey = m => MAT_KEYS.indexOf(m)>=0;
+  const gotSomething = r.stand || r.weight!=null || r.postKg!=null || (r.have&&Object.keys(r.have).length) || (r.need&&Object.keys(r.need).length) || (r.adjust&&Object.keys(r.adjust).length);
+  const id = r.stand || (state.view.name==="stand" ? state.view.standId : null);
+  if (!id){ toast('Escuché: "'+heard+'" · No pillé el platz. Ej: "E19 350 kilos 4 dolly"'); return; }
+  if (!gotSomething){ toast('Escuché: "'+heard+'" · No entendí cantidades'); return; }
+  const s = getStand(id);
+  if (r.weight!=null && !isNaN(r.weight)) s.weight = String(r.weight);
+  if (r.postKg!=null && !isNaN(r.postKg)) s.post.kg = String(r.postKg);
+  Object.keys(r.have||{}).forEach(m => { if(!okKey(m)) return; if (!s[m]) s[m]=(m==="wagen"?{have:0,need:0}:{need:0,have:0}); s[m].have = Number(r.have[m])||0; });
+  Object.keys(r.need||{}).forEach(m => { if(!okKey(m)) return; if (!s[m]) s[m]=(m==="wagen"?{have:0,need:0}:{need:0,have:0}); s[m].need = Number(r.need[m])||0; });
+  Object.keys(r.adjust||{}).forEach(m => { if(!okKey(m)) return; if (!s[m]) s[m]=(m==="wagen"?{have:0,need:0}:{need:0,have:0}); s[m].have = Math.max(0,(Number(s[m].have)||0)+(Number(r.adjust[m])||0)); });
+  save();
+  state.view = { name:"stand", standId:id };
+  render();
+  const t = T[state.lang]; const parts = [];
+  if (r.weight!=null) parts.push(r.weight+"kg");
+  if (r.postKg!=null) parts.push("post "+r.postKg+"kg");
+  Object.keys(r.have||{}).forEach(m => { if(okKey(m)) parts.push(t.labels[m]+" "+r.have[m]); });
+  Object.keys(r.need||{}).forEach(m => { if(okKey(m)) parts.push(t.labels[m]+" nec "+r.need[m]); });
+  Object.keys(r.adjust||{}).forEach(m => { if(okKey(m)) parts.push(t.labels[m]+" "+(r.adjust[m]>0?"+":"")+r.adjust[m]); });
+  toast("✓ "+id + (parts.length ? " · "+parts.join(" · ") : ""));
+}
+
+async function smartParse(transcript){
+  const resp = await fetch(SMART_URL, { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ transcript, stands: ALL_STANDS }) });
+  if (!resp.ok) throw new Error("http "+resp.status);
+  const j = await resp.json();
+  if (!j || j.error) throw new Error("noai");
+  return { stand: j.stand||null, weight:(j.weight==null?null:Number(j.weight)), postKg:(j.postKg==null?null:Number(j.postKg)), have:j.have||{}, need:j.need||{}, adjust:j.adjust||{} };
+}
+
+async function handleVoice(transcript){
+  if (SMART_ON){
+    toast("Pensando…");
+    try { const r = await smartParse(transcript); applyParsed(r, transcript); return; }
+    catch(_){ /* si la IA no está o falla, uso el parser local */ }
+  }
+  applyParsed(parseVoice(transcript), transcript);
+}
+
+function startVoice(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR){ toast("Este navegador no permite voz. En iPhone usá Safari (no Chrome), abriendo el link (no el ícono de inicio)."); return; }
+  if (window.navigator.standalone === true){ toast("Estás en la app instalada (ícono). El micrófono solo anda abriendo el link en Safari."); return; }
+  toast("Activando micrófono…");
+  const btn = document.getElementById("micBtn");
+  let rec;
+  try { rec = new SR(); } catch(_){ toast("No pude iniciar el micrófono"); return; }
+  rec.lang = "es-AR"; rec.interimResults = false; rec.continuous = false; rec.maxAlternatives = 1;
+  let finalTxt = "", started = false;
+  rec.onstart = () => { started = true; if (btn) btn.classList.add("listening"); toast("Escuchando… hablá ya, cerca del teléfono"); };
+  rec.onresult = (e) => { let t=""; for (let i=0;i<e.results.length;i++) t += e.results[i][0].transcript + " "; finalTxt = t.trim(); };
+  rec.onerror = (e) => {
+    if (btn) btn.classList.remove("listening");
+    if (e.error==="no-speech") toast("No te escuché. Activá Ajustes → General → Teclado → Dictado. Y hablá apenas tocás.");
+    else if (e.error==="not-allowed" || e.error==="service-not-allowed") toast("Micrófono bloqueado. Usá Safari (no el ícono) y Ajustes → Safari → Micrófono → Permitir.");
+    else if (e.error==="audio-capture") toast("No encuentro micrófono en este equipo.");
+    else if (e.error!=="aborted") toast("Micrófono: "+e.error);
+  };
+  rec.onend = () => { if (btn) btn.classList.remove("listening"); if (finalTxt) handleVoice(finalTxt); };
+  try { rec.start(); } catch(err){ toast("No arrancó el micrófono: "+((err&&err.name)||"error")); return; }
+  setTimeout(() => { if (!started) toast("El micrófono no respondió. En iPhone: abrí en Safari (no el ícono) y activá el Dictado (Ajustes→General→Teclado)."); }, 1600);
+}
+
+function mountVoiceUI(){
+  // Micrófono desactivado por ahora (el de Safari en iPhone no es confiable)
+  const tst = document.createElement("div"); tst.id = "toast";
+  document.body.appendChild(tst);
+}
+
+function goBack(){
+  const v = state.view;
+  if (v.name==="stand"){ state.view = { name:"area", areaId: AREA_OF_STAND[v.standId].id }; render(); }
+  else if (v.name==="area" || v.name==="balance" || v.name==="map" || v.name==="plan"){ state.view = { name:"home" }; render(); }
+}
+function setupSwipeBack(){
+  let sx=0, sy=0, st=0, ok=false;
+  document.addEventListener("touchstart", e => {
+    if (!e.touches || e.touches.length!==1){ ok=false; return; }
+    const tt = e.touches[0]; sx=tt.clientX; sy=tt.clientY; st=Date.now();
+    ok = !(e.target.closest && e.target.closest(".mapPicker, input, textarea, select"));
+  }, {passive:true});
+  document.addEventListener("touchend", e => {
+    if (!ok) return; ok=false;
+    const tt = e.changedTouches[0];
+    const dx = tt.clientX - sx, dy = tt.clientY - sy, dt = Date.now() - st;
+    if (dx>80 && Math.abs(dy)<50 && Math.abs(dx) > Math.abs(dy)*2 && dt<700) goBack();
+  }, {passive:true});
+}
+
+/* Arranque */
+load();
+mountVoiceUI();
+mountPhotoUI();
+setupSwipeBack();
+render();
+</script>
+</body>
+</html>
