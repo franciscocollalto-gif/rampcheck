@@ -58,8 +58,25 @@
   .pvRetirar { margin-top: 8px; font-size: 13px; font-weight: 700; color: #92400e; background: #fffbeb; padding: 8px 10px; border-radius: 8px; }
   .pvDep { display: flex; align-items: center; gap: 8px; background: #eff6ff !important; }
   .pvDepTxt { font-size: 13px; color: #2563eb; font-weight: 700; }
+  .pvTime { font-size: 15px; font-weight: 800; color: #1e293b; background: #f1f5f9; padding: 2px 9px; border-radius: 7px; }
+  .pvSoon { margin-left: auto; font-size: 12px; font-weight: 800; color: #b45309; background: #fef3c7; padding: 3px 9px; border-radius: 7px; }
+  .pvUrgent { border: 2px solid #f59e0b; }
+  .pvDepRow { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #eef2f6; }
+  .pvDepRow:last-child { border-bottom: none; }
   .retirarBar { margin: 6px 16px 0; background: #fffbeb; color: #92400e; font-weight: 700; font-size: 13px; padding: 10px 14px; border-radius: 12px; }
   .salidaBar { margin: 6px 16px 0; background: #eff6ff; color: #2563eb; font-weight: 700; font-size: 13px; padding: 10px 14px; border-radius: 12px; }
+
+  .depSection { margin: 18px 16px 0; padding-top: 14px; border-top: 2px dashed #e2e8f0; }
+  .depTitle { font-size: 13px; font-weight: 800; color: #7c3aed; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .3px; }
+  .depRowH { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+  .depCard { flex-shrink: 0; width: 150px; text-align: left; background: #f5f3ff; border: 1.5px solid #ddd6fe; border-radius: 14px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
+  .depName { font-size: 14px; font-weight: 800; color: #6d28d9; }
+  .depChips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .depChip { font-size: 11px; font-weight: 800; background: #ede9fe; color: #6d28d9; padding: 2px 7px; border-radius: 6px; }
+  .depEmpty { font-size: 12px; color: #a78bda; font-weight: 600; }
+  .depEditRow { display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .clearStandBtn { width: 100%; background: #fff; color: #D64545; border: 1.5px solid #fecaca; border-radius: 12px; padding: 12px; font-weight: 800; font-size: 15px; cursor: pointer; }
+  .clearStandBtn:active { background: #fef2f2; }
   .planBtn { background: #2563eb; color: #fff; border: none; }
   .balBtn { background: #1e293b; color: #fff; border: none; }
 
@@ -78,7 +95,10 @@
   .planNote.miss { background: #fef2f2; color: #D64545; }
   .planNote.have { background: #ecfdf3; color: #1F9D57; }
 
-  .mvRow { display: flex; align-items: center; gap: 10px; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; text-align: left; }
+  .mvRow { display: flex; align-items: center; gap: 8px; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .mvInfo { display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer; }
+  .okBtn { flex-shrink: 0; background: #1F9D57; color: #fff; border: none; border-radius: 9px; padding: 9px 16px; font-weight: 800; font-size: 15px; cursor: pointer; }
+  .okBtn:active { background: #167c44; }
   .mvSide { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .mvStand { font-size: 17px; font-weight: 800; padding: 4px 11px; border-radius: 8px; }
   .mvStand.green { background: #dcfce7; color: #166534; }
@@ -93,7 +113,8 @@
   .routeLoad { font-size: 15px; font-weight: 700; color: #1e293b; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .routeLoad b { font-size: 18px; }
   .dropList { display: flex; flex-direction: column; gap: 8px; }
-  .dropRow { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; background: transparent; border: none; padding: 2px 0; cursor: pointer; font-size: 15px; font-weight: 600; color: #1e293b; }
+  .dropRow { display: flex; align-items: center; gap: 8px; width: 100%; padding: 2px 0; }
+  .dropInfo { display: flex; align-items: center; gap: 6px; flex: 1; text-align: left; font-size: 15px; font-weight: 600; color: #1e293b; cursor: pointer; }
   .dropArrow { color: #94a3b8; font-weight: 800; font-size: 18px; }
   .dropRow b { font-size: 17px; }
 
@@ -309,6 +330,15 @@ const AREAS = [
 const AREA_BY_ID = {}; AREAS.forEach(a => AREA_BY_ID[a.id] = a);
 const AREA_OF_STAND = {}; AREAS.forEach(a => a.stands.forEach(s => AREA_OF_STAND[s] = a));
 const ALL_STANDS = []; AREAS.forEach(a => a.stands.forEach(s => ALL_STANDS.push(s)));
+const DEPOTS = [
+  { id:"DEP_PAPAECHO", name:"Papa Echo" },
+  { id:"DEP_DETRASPAPA", name:"Detrás de Papa" },
+  { id:"DEP_E58", name:"E58" },
+  { id:"DEP_B38", name:"B38" },
+  { id:"DEP_TOR101", name:"TOR101" },
+  { id:"DEP_GOLF", name:"Golf (wagelys)" },
+  { id:"DEP_INDIA", name:"India" },
+];
 
 const MAT_KEYS = ["wagen","dolly","trailer","wageli","post"];
 const MAP_CATS = ["todo", ...MAT_KEYS];
@@ -326,6 +356,9 @@ const T = {
     photoCancel:"Cancelar", photoEmpty:"No pude leer llegadas en la foto.",
     photoRetirar:"retirar contenedores vacíos", photoSalida:"sale · puede dejar material",
     photoNotReady:"La lectura por foto está lista pero falta conectar la clave (ver GUIA-FOTO).",
+    depotsWord:"Depósitos (Abstellplatz)", depotWord:"Depósito · solo lo que hay",
+    photoMore:"📷 Sacar otra foto", photoNow:"ya", photoDepTitle:"Salidas · la plaza se libera",
+    clearStand:"Vaciar plaza (próximo avión)", clearStandAsk:"¿Vaciar esta plaza para preparar el próximo avión?", clearedWord:"vaciada",
     planBtn:"Plan · qué llevar y a dónde", planTitle:"Plan de traslados",
     planEmpty:"Nada que mover: todo está nivelado o sin datos.",
     needOutside:"Falta traer de afuera", freeSurplus:"Sobra libre (se puede sacar)",
@@ -357,6 +390,9 @@ const T = {
     photoCancel:"Abbrechen", photoEmpty:"Keine Ankünfte im Foto erkannt.",
     photoRetirar:"leere Container wegnehmen", photoSalida:"Abflug · lässt evtl. Material",
     photoNotReady:"Die Foto-Lesung ist bereit, aber der Schlüssel fehlt (siehe GUIA-FOTO).",
+    depotsWord:"Ablageplätze (Abstellplatz)", depotWord:"Ablage · nur Bestand",
+    photoMore:"📷 Weiteres Foto", photoNow:"jetzt", photoDepTitle:"Abflüge · Platz wird frei",
+    clearStand:"Platz leeren (nächstes Flugzeug)", clearStandAsk:"Diesen Platz für das nächste Flugzeug leeren?", clearedWord:"geleert",
     planBtn:"Plan · was wohin bringen", planTitle:"Verteilplan",
     planEmpty:"Nichts zu bewegen: alles ausgeglichen oder keine Daten.",
     needOutside:"Von aussen holen", freeSurplus:"Frei übrig (kann weg)",
@@ -457,6 +493,12 @@ function matNeed(id, s, mat){
   return Number((s[mat]&&s[mat].need)||0);
 }
 function matHave(s, mat){ return Number((s[mat]&&s[mat].have)||0); }
+function getDepot(id){
+  if (!state.data[id]) state.data[id] = {};
+  const d = state.data[id];
+  MAT_KEYS.forEach(m => { if (!d[m] || typeof d[m] !== "object") d[m] = { have:0 }; if (d[m].have == null) d[m].have = 0; });
+  return d;
+}
 
 /* ============================================================
    Lógica
@@ -605,6 +647,37 @@ function screenArea(){
     if (movesBody) html += '<div class="block"><div class="blockTitle">'+t.zoneLevel+'</div>'+movesBody+'</div>';
   }
 
+  // Depósitos (Abstellplatz) — iguales en todas las zonas
+  html += '<div class="depSection"><div class="depTitle">'+t.depotsWord+'</div><div class="depRowH">';
+  DEPOTS.forEach(dp => {
+    const d = state.data[dp.id];
+    let chips = "";
+    if (d) MAT_KEYS.forEach(m => { const h = Number(d[m]&&d[m].have)||0; if (h>0) chips += '<span class="depChip">'+t.labels[m]+' '+h+'</span>'; });
+    html += '<button class="depCard" data-action="open-depot" data-depot="'+dp.id+'" data-area="'+area.id+'">'+
+      '<span class="depName">'+dp.name+'</span>'+
+      (chips ? '<span class="depChips">'+chips+'</span>' : '<span class="depEmpty">vacío</span>')+
+      '</button>';
+  });
+  html += '</div></div>';
+
+  return html;
+}
+
+function screenDepot(){
+  const t = T[state.lang];
+  const id = state.view.depotId;
+  const dp = DEPOTS.find(x => x.id===id) || {name:"Depósito"};
+  const d = getDepot(id);
+  let html = topbar(dp.name, t.depotWord, "#7c3aed", "area", state.view.areaId);
+  MAT_KEYS.forEach(m => {
+    const have = Number(d[m].have)||0;
+    html += '<div class="matCard"><div class="matTop"><span class="matName3">'+t.labels[m]+'</span></div>'+
+      '<div class="depEditRow">'+
+        '<button class="hvBtn2 minus" data-action="dep-adj" data-dep="'+id+'" data-mat="'+m+'" data-delta="-1">−</button>'+
+        '<input class="stepNum tnum" id="dep-'+m+'" data-dep="'+id+'" data-mat="'+m+'" inputmode="numeric" placeholder="0" value="'+(have>0?have:"")+'" />'+
+        '<button class="hvBtn2 plus" data-action="dep-adj" data-dep="'+id+'" data-mat="'+m+'" data-delta="1">+</button>'+
+      '</div></div>';
+  });
   return html;
 }
 
@@ -659,7 +732,6 @@ function screenStand(){
 
   // Estado de la plaza
   html += '<div id="standStatus">'+standStatusHTML(id, s, t)+'</div>';
-  html += '<div style="padding:0 16px"><button class="bigBtn completeBtn" data-action="complete-stand"><span>'+t.completarBtn+'</span></button></div>';
   if (Number(s.retirar)>0) html += '<div class="retirarBar">📤 '+s.retirar+' '+t.photoRetirar+'</div>';
   if (s.aviso) html += '<div class="salidaBar">↗ '+t.photoSalida+'</div>';
 
@@ -687,10 +759,10 @@ function screenStand(){
         '<span class="matRes" id="res-'+m+'">'+resInner(need, have, t)+'</span></div>'+
       kgRow+
       '<div class="ndRow">'+hayBox+necBox+'</div>'+
-      '<button class="doneBtn" data-action="done-mat" data-mat="'+m+'">✓ '+t.doneWord+'</button>'+
       '<div class="progWrap"><div class="progFill" id="prog-'+m+'" style="width:'+pi.pct+'%;background:'+pi.col+'"></div></div>'+
       '</div>';
   });
+  html += '<div style="padding:8px 16px 24px"><button class="clearStandBtn" data-action="clear-stand" data-stand="'+id+'">🗑 '+t.clearStand+'</button></div>';
   return html;
 }
 
@@ -926,18 +998,24 @@ function routesHTML(rr, mat){
   rr.routes.forEach(rt => {
     if (rt.stops.length === 1){
       const st = rt.stops[0];
-      out += '<button class="mvRow" data-action="open-stand" data-stand="'+st.to+'">'+
-        '<span class="mvSide"><span class="mvStand green tnum">'+rt.from+'</span><span class="mvCap">'+t.sobraTag+'</span></span>'+
-        '<span class="mvArrow">→</span>'+
-        '<span class="mvSide"><span class="mvStand red tnum">'+st.to+'</span><span class="mvCap">'+t.faltaTag+'</span></span>'+
-        '<span class="mvQty tnum">'+st.qty+(rt.trips>1?'<span class="mvTrips">'+viajesTxt(rt.trips)+'</span>':'')+'</span>'+
-        '</button>';
+      out += '<div class="mvRow">'+
+        '<div class="mvInfo" data-action="open-stand" data-stand="'+st.to+'">'+
+          '<span class="mvSide"><span class="mvStand green tnum">'+rt.from+'</span><span class="mvCap">'+t.sobraTag+'</span></span>'+
+          '<span class="mvArrow">→</span>'+
+          '<span class="mvSide"><span class="mvStand red tnum">'+st.to+'</span><span class="mvCap">'+t.faltaTag+'</span></span>'+
+          '<span class="mvQty tnum">'+st.qty+(rt.trips>1?'<span class="mvTrips">'+viajesTxt(rt.trips)+'</span>':'')+'</span>'+
+        '</div>'+
+        '<button class="okBtn" data-action="route-done" data-mat="'+mat+'" data-to="'+st.to+'" data-qty="'+st.qty+'">OK</button>'+
+        '</div>';
     } else {
       let drops = "";
       rt.stops.forEach(st => {
-        drops += '<button class="dropRow" data-action="open-stand" data-stand="'+st.to+'">'+
-          '<span class="dropArrow">→</span>'+t.leaveWord+' <b class="tnum">'+st.qty+'</b> '+t.inWord+' '+
-          '<span class="mvStand red sm tnum">'+st.to+'</span></button>';
+        drops += '<div class="dropRow">'+
+          '<div class="dropInfo" data-action="open-stand" data-stand="'+st.to+'">'+
+            '<span class="dropArrow">→</span>'+t.leaveWord+' <b class="tnum">'+st.qty+'</b> '+t.inWord+' '+
+            '<span class="mvStand red sm tnum">'+st.to+'</span></div>'+
+          '<button class="okBtn" data-action="route-done" data-mat="'+mat+'" data-to="'+st.to+'" data-qty="'+st.qty+'">OK</button>'+
+          '</div>';
       });
       out += '<div class="routeCard">'+
         '<div class="routeHead"><span class="routeLoad">'+t.loadWord+' <b class="tnum">'+rt.total+'</b> '+t.inWord+' '+
@@ -1005,6 +1083,16 @@ function mountPhotoUI(){
   document.body.appendChild(inp);
 }
 
+function minsUntil(hhmm){
+  if (!hhmm || !/^\d{1,2}:\d{2}$/.test(hhmm)) return null;
+  const p = hhmm.split(":"); const h = parseInt(p[0],10), m = parseInt(p[1],10);
+  const now = new Date();
+  let diff = (h*60+m) - (now.getHours()*60+now.getMinutes());
+  if (diff < -720) diff += 1440;
+  if (diff > 720) diff -= 1440;
+  return diff;
+}
+
 async function handlePhoto(dataUrl){
   const t = T[state.lang];
   toast("Leyendo la pantalla…");
@@ -1014,7 +1102,12 @@ async function handlePhoto(dataUrl){
     if (!resp.ok) throw new Error("http "+resp.status);
     const j = await resp.json();
     if (!j || j.error || !Array.isArray(j.flights)) throw new Error("noai");
-    state.photo = j.flights;
+    if (!state.photoList) state.photoList = [];
+    j.flights.forEach(f => {
+      const key = (f.flight||"")+"|"+(f.stand||"");
+      const idx = state.photoList.findIndex(x => ((x.flight||"")+"|"+(x.stand||""))===key);
+      if (idx>=0) state.photoList[idx] = f; else state.photoList.push(f);
+    });
     state.view = { name:"photo" };
     render();
   } catch(e){
@@ -1041,14 +1134,17 @@ function applyPhotoFlights(flights){
 
 function screenPhoto(){
   const t = T[state.lang];
-  const flights = state.photo || [];
+  const flights = state.photoList || [];
   let html = topbar(t.photoTitle, "", "#1F9D57", "home");
   const arr = flights.filter(f => !f.isDeparture && f.stand && AREA_OF_STAND[f.stand]);
   const dep = flights.filter(f => f.isDeparture && f.stand && AREA_OF_STAND[f.stand]);
+  arr.sort((a,b) => { const ma=minsUntil(a.time), mb=minsUntil(b.time); if (ma==null) return 1; if (mb==null) return -1; return ma-mb; });
+
+  html += '<div class="actions" style="padding:12px 16px 4px">'+
+    '<button class="bigBtn photoBtn" data-action="photo-more"><span>'+t.photoMore+'</span><span>+</span></button></div>';
 
   if (!arr.length && !dep.length){
     html += '<div class="block"><div class="empty" style="padding:6px 0">'+t.photoEmpty+'</div></div>';
-    return html;
   }
 
   arr.forEach(f => {
@@ -1060,15 +1156,25 @@ function screenPhoto(){
     if (Number(f.dolly)>0) chips += '<span class="pvChip">Dolly '+f.dolly+'</span>';
     if (Number(f.trailer)>0) chips += '<span class="pvChip">Tráiler '+f.trailer+'</span>';
     const ret = Number(f.empties)>0 ? '<div class="pvRetirar">📤 '+f.empties+' '+t.photoRetirar+'</div>' : '';
-    html += '<div class="block"><div class="pvHead"><span class="pvStand tnum">'+f.stand+'</span>'+
-      '<span class="pvFlight">'+(f.flight||"")+(f.type?(" · "+f.type):"")+'</span></div>'+
+    const mins = minsUntil(f.time);
+    const urgent = (mins!=null && mins<=60);
+    let soon = "";
+    if (urgent) soon = '<span class="pvSoon">⏰ '+(mins<=0 ? t.photoNow : ("en "+mins+" min"))+'</span>';
+    html += '<div class="block'+(urgent?' pvUrgent':'')+'"><div class="pvHead">'+
+      (f.time?'<span class="pvTime tnum">'+f.time+'</span>':'')+
+      '<span class="pvStand tnum">'+f.stand+'</span>'+
+      '<span class="pvFlight">'+(f.flight||"")+(f.type?(" · "+f.type):"")+'</span>'+soon+'</div>'+
       '<div class="pvChips">'+(chips||'<span class="pvNone">—</span>')+'</div>'+ret+'</div>';
   });
 
-  dep.forEach(f => {
-    html += '<div class="block pvDep"><span class="pvStand tnum">'+f.stand+'</span> '+
-      '<span class="pvDepTxt">↗ '+(f.flight||"")+(f.type?(" ("+f.type+")"):"")+' · '+t.photoSalida+'</span></div>';
-  });
+  if (dep.length){
+    html += '<div class="block"><div class="blockTitle">'+t.photoDepTitle+'</div>';
+    dep.forEach(f => {
+      html += '<div class="pvDepRow"><span class="pvStand tnum">'+f.stand+'</span>'+
+        '<span class="pvDepTxt">↗ '+(f.flight||"")+(f.time?(" · "+f.time):"")+' · '+t.photoSalida+'</span></div>';
+    });
+    html += '</div>';
+  }
 
   html += '<div class="actions" style="padding:6px 16px 20px">'+
     '<button class="bigBtn balBtn" data-action="photo-load"><span>'+t.photoLoad+'</span><span>→</span></button>'+
@@ -1082,6 +1188,7 @@ function render(){
     case "home": html = screenHome(); break;
     case "area": html = screenArea(); break;
     case "stand": html = screenStand(); break;
+    case "depot": html = screenDepot(); break;
     case "balance": html = screenBalance(); break;
     case "map": html = screenMap(); break;
     case "plan": html = screenPlan(); break;
@@ -1104,11 +1211,47 @@ document.addEventListener("click", function(e){
   if (action==="newday"){ clearNewDay(); return; }
   if (action==="map"){ state.view = {name:"map"}; render(); return; }
   if (action==="plan"){ state.view = {name:"plan"}; render(); return; }
-  if (action==="photo"){ const el2 = document.getElementById("photoInput"); if (el2) el2.click(); return; }
-  if (action==="photo-load"){ applyPhotoFlights(state.photo||[]); state.photo=null; state.view={name:"home"}; render(); toast("✓ Cargado"); return; }
+  if (action==="route-done"){
+    const mat = el.dataset.mat;
+    const to = el.dataset.to;
+    const qty = parseInt(el.dataset.qty,10)||0;
+    const s = getStand(to);
+    if (!s[mat]) s[mat] = (mat==="wagen" ? {have:0,need:0} : {need:0,have:0});
+    s[mat].have = (Number(s[mat].have)||0) + qty;
+    save();
+    const y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+    toast("✓ +"+qty+" "+(T[state.lang].labels[mat]||"")+" en "+to);
+    return;
+  }
+  if (action==="photo"){ state.photoList = []; const el2 = document.getElementById("photoInput"); if (el2) el2.click(); return; }
+  if (action==="photo-more"){ const el3 = document.getElementById("photoInput"); if (el3) el3.click(); return; }
+  if (action==="photo-load"){ applyPhotoFlights(state.photoList||[]); state.photoList=null; state.view={name:"home"}; render(); toast("✓ Cargado"); return; }
   if (action==="balance"){ state.view = {name:"balance"}; render(); return; }
   if (action==="open-area"){ state.view = {name:"area", areaId: el.dataset.area}; render(); return; }
   if (action==="open-stand"){ state.view = {name:"stand", standId: el.dataset.stand}; render(); return; }
+  if (action==="clear-stand"){
+    const id = el.dataset.stand;
+    if (!window.confirm(T[state.lang].clearStandAsk)) return;
+    state.data[id] = emptyStand();
+    save();
+    state.view = {name:"area", areaId: AREA_OF_STAND[id].id};
+    render();
+    toast("✓ "+id+" "+T[state.lang].clearedWord);
+    return;
+  }
+  if (action==="open-depot"){ state.view = {name:"depot", depotId: el.dataset.depot, areaId: el.dataset.area}; render(); return; }
+  if (action==="dep-adj"){
+    const dep = el.dataset.dep, mat = el.dataset.mat;
+    const delta = parseInt(el.dataset.delta,10);
+    const d = getDepot(dep);
+    let v = (Number(d[mat].have)||0) + delta; if (v<0) v = 0;
+    d[mat].have = v; save();
+    const inp = document.getElementById("dep-"+mat);
+    if (inp) inp.value = (v>0 ? v : "");
+    return;
+  }
   if (action==="mapcat"){ state.mapCat = el.dataset.cat; render(); return; }
   if (action==="back"){
     const to = el.dataset.to;
@@ -1188,6 +1331,15 @@ document.addEventListener("input", function(e){
     if (np) np.textContent = matNeed(id, s, "post");
     refreshMat(id, s, "post", t);
     refreshStandStatus(id, s, t);
+    return;
+  }
+  if (el.dataset && el.dataset.dep){
+    const dep = el.dataset.dep, mat = el.dataset.mat;
+    let str = el.value.replace(/[^0-9]/g,"").replace(/^0+(?=\d)/,"");
+    el.value = str;
+    const d = getDepot(dep);
+    d[mat].have = str==="" ? 0 : parseInt(str,10);
+    save();
     return;
   }
   if (el.dataset && el.dataset.mat){
