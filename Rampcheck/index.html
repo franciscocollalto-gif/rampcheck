@@ -78,6 +78,13 @@
   .clearStandBtn { width: 100%; background: #fff; color: #D64545; border: 1.5px solid #fecaca; border-radius: 12px; padding: 12px; font-weight: 800; font-size: 15px; cursor: pointer; }
   .clearStandBtn:active { background: #fef2f2; }
   .warnBar { margin: 6px 16px 0; background: #fff7ed; color: #c2410c; font-weight: 800; font-size: 13px; padding: 10px 14px; border-radius: 12px; border: 1px solid #fed7aa; }
+  .flightRow { display: flex; align-items: center; gap: 6px; margin: 8px 16px 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 10px; }
+  .flightIco { font-size: 15px; color: #64748b; }
+  .flightInp { border: none; outline: none; background: transparent; font-size: 15px; font-weight: 700; color: #1e293b; min-width: 0; }
+  .flightInp[data-fl="flight"] { flex: 1.3; }
+  .flightInp.acType { flex: 1; color: #2563eb; }
+  .flightInp.eta { flex: 0.8; text-align: right; }
+  .flightInp::placeholder { color: #cbd5e1; font-weight: 600; }
   .agendaBtn { background: #0d9488; color: #fff; border: none; }
   .frachBanner { background: #fef2f2; color: #b91c1c; font-weight: 800; font-size: 14px; padding: 12px 16px; border-radius: 12px; margin: 12px 20px 0; border: 1.5px solid #fecaca; }
   .frachBox { margin: 14px 20px 0; }
@@ -361,6 +368,7 @@ const DEPOTS = [
   { id:"DEP_TOR101", name:"TOR101" },
   { id:"DEP_GOLF", name:"Golf (wagelys)" },
   { id:"DEP_INDIA", name:"India" },
+  { id:"DEP_A10", name:"A10" },
 ];
 
 const MAT_KEYS = ["wagen","dolly","trailer","wageli","post"];
@@ -385,6 +393,7 @@ const T = {
     photoMore:"📷 Sacar otra foto", photoNow:"ya", photoDepTitle:"Salidas · la plaza se libera",
     clearStand:"Vaciar plaza (próximo avión)", clearStandAsk:"¿Vaciar esta plaza para preparar el próximo avión?", clearedWord:"vaciada",
     warnDnata:"Tráiler DNata (especial)", warnMax4:"Máximo 4 en pista",
+    flPlace:"Vuelo", acPlace:"Avión", etaPlace:"Hora",
     agendaBtn:"🕐 Agenda (por hora)", agendaTitle:"Agenda", agendaEmpty:"Sacá una foto para armar la agenda por hora.",
     frachTitle:"Frach — avisos", frachAsk:"¿A qué hora el frach? (ej. 14:00)", frachAdd:"+ Hora de frach",
     frachSoon:"Viene frach a las", frachClean:"sacá todo el material de la pista", lowUse:"Poco uso",
@@ -423,6 +432,7 @@ const T = {
     photoMore:"📷 Weiteres Foto", photoNow:"jetzt", photoDepTitle:"Abflüge · Platz wird frei",
     clearStand:"Platz leeren (nächstes Flugzeug)", clearStandAsk:"Diesen Platz für das nächste Flugzeug leeren?", clearedWord:"geleert",
     warnDnata:"DNata-Trailer (speziell)", warnMax4:"Max. 4 auf dem Vorfeld",
+    flPlace:"Flug", acPlace:"Typ", etaPlace:"Zeit",
     agendaBtn:"🕐 Agenda (nach Uhrzeit)", agendaTitle:"Agenda", agendaEmpty:"Mach ein Foto für die Agenda nach Uhrzeit.",
     frachTitle:"Frach — Hinweise", frachAsk:"Um wie viel Uhr der Frach? (z.B. 14:00)", frachAdd:"+ Frach-Uhrzeit",
     frachSoon:"Frach kommt um", frachClean:"alles Material vom Vorfeld nehmen", lowUse:"Wenig genutzt",
@@ -826,6 +836,12 @@ function screenStand(){
 
   // Estado de la plaza
   html += '<div id="standStatus">'+standStatusHTML(id, s, t)+'</div>';
+  html += '<div class="flightRow">'+
+    '<span class="flightIco">✈</span>'+
+    '<input class="flightInp" data-fl="flight" placeholder="'+t.flPlace+'" value="'+esc(s.flight||"")+'" />'+
+    '<input class="flightInp acType" data-fl="acType" placeholder="'+t.acPlace+'" value="'+esc(s.acType||"")+'" />'+
+    '<input class="flightInp eta" data-fl="eta" placeholder="'+t.etaPlace+'" value="'+esc(s.eta||"")+'" />'+
+    '</div>';
   if (s.dnata) html += '<div class="warnBar">⚠️ '+t.warnDnata+'</div>';
   if (s.max4) html += '<div class="warnBar">⚠️ '+t.warnMax4+'</div>';
   if (Number(s.retirar)>0) html += '<div class="retirarBar">📤 '+s.retirar+' '+t.photoRetirar+'</div>';
@@ -1233,6 +1249,8 @@ function applyPhotoFlights(flights){
       s.dnata = fl.dnata ? 1 : 0;
       s.max4 = fl.max4 ? 1 : 0;
       s.flight = f.flight || "";
+      s.acType = f.type || "";
+      s.eta = f.time || "";
     }
   });
   save();
@@ -1501,6 +1519,15 @@ document.addEventListener("input", function(e){
     if (np) np.textContent = matNeed(id, s, "post");
     refreshMat(id, s, "post", t);
     refreshStandStatus(id, s, t);
+    return;
+  }
+  if (el.dataset && el.dataset.fl){
+    const id = state.view.standId;
+    const s = getStand(id);
+    const k = el.dataset.fl;
+    s[k] = el.value;
+    if (k==="flight"){ const fl = airlineFlags(el.value); s.dnata = fl.dnata?1:0; s.max4 = fl.max4?1:0; }
+    save();
     return;
   }
   if (el.dataset && el.dataset.dep){
