@@ -77,6 +77,18 @@
   .depEditRow { display: flex; align-items: center; justify-content: center; gap: 8px; }
   .clearStandBtn { width: 100%; background: #fff; color: #D64545; border: 1.5px solid #fecaca; border-radius: 12px; padding: 12px; font-weight: 800; font-size: 15px; cursor: pointer; }
   .clearStandBtn:active { background: #fef2f2; }
+  .warnBar { margin: 6px 16px 0; background: #fff7ed; color: #c2410c; font-weight: 800; font-size: 13px; padding: 10px 14px; border-radius: 12px; border: 1px solid #fed7aa; }
+  .agendaBtn { background: #0d9488; color: #fff; border: none; }
+  .frachBanner { background: #fef2f2; color: #b91c1c; font-weight: 800; font-size: 14px; padding: 12px 16px; border-radius: 12px; margin: 12px 20px 0; border: 1.5px solid #fecaca; }
+  .frachBox { margin: 14px 20px 0; }
+  .frachHead { display: flex; align-items: center; justify-content: space-between; }
+  .frachTitle { font-size: 13px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .3px; }
+  .frachAdd { background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 9px; padding: 6px 12px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .frachList { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .frachChip { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 5px 6px 5px 12px; font-size: 15px; font-weight: 800; }
+  .frachDel { background: #f1f5f9; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; color: #64748b; }
+  .agRow { display: block; width: 100%; text-align: left; cursor: pointer; }
+  .pvWarn { font-size: 11px; font-weight: 800; color: #c2410c; background: #fff7ed; border: 1px solid #fed7aa; padding: 3px 8px; border-radius: 6px; }
   .planBtn { background: #2563eb; color: #fff; border: none; }
   .balBtn { background: #1e293b; color: #fff; border: none; }
 
@@ -347,6 +359,8 @@ const KG = 200;
 const LS_DATA = "rampcheck_data_v2";
 const LS_LANG = "rampcheck_lang_v1";
 const LS_DAY = "rampcheck_day_v1";
+const LS_FRACH = "rampcheck_frach_v1";
+const LS_AGENDA = "rampcheck_agenda_v1";
 
 const T = {
   es: {
@@ -359,6 +373,10 @@ const T = {
     depotsWord:"Depósitos (Abstellplatz)", depotWord:"Depósito · solo lo que hay",
     photoMore:"📷 Sacar otra foto", photoNow:"ya", photoDepTitle:"Salidas · la plaza se libera",
     clearStand:"Vaciar plaza (próximo avión)", clearStandAsk:"¿Vaciar esta plaza para preparar el próximo avión?", clearedWord:"vaciada",
+    warnDnata:"Tráiler DNata (especial)", warnMax4:"Máximo 4 en pista",
+    agendaBtn:"🕐 Agenda (por hora)", agendaTitle:"Agenda", agendaEmpty:"Sacá una foto para armar la agenda por hora.",
+    frachTitle:"Frach — avisos", frachAsk:"¿A qué hora el frach? (ej. 14:00)", frachAdd:"+ Hora de frach",
+    frachSoon:"Viene frach a las", frachClean:"sacá todo el material de la pista",
     planBtn:"Plan · qué llevar y a dónde", planTitle:"Plan de traslados",
     planEmpty:"Nada que mover: todo está nivelado o sin datos.",
     needOutside:"Falta traer de afuera", freeSurplus:"Sobra libre (se puede sacar)",
@@ -393,6 +411,10 @@ const T = {
     depotsWord:"Ablageplätze (Abstellplatz)", depotWord:"Ablage · nur Bestand",
     photoMore:"📷 Weiteres Foto", photoNow:"jetzt", photoDepTitle:"Abflüge · Platz wird frei",
     clearStand:"Platz leeren (nächstes Flugzeug)", clearStandAsk:"Diesen Platz für das nächste Flugzeug leeren?", clearedWord:"geleert",
+    warnDnata:"DNata-Trailer (speziell)", warnMax4:"Max. 4 auf dem Vorfeld",
+    agendaBtn:"🕐 Agenda (nach Uhrzeit)", agendaTitle:"Agenda", agendaEmpty:"Mach ein Foto für die Agenda nach Uhrzeit.",
+    frachTitle:"Frach — Hinweise", frachAsk:"Um wie viel Uhr der Frach? (z.B. 14:00)", frachAdd:"+ Frach-Uhrzeit",
+    frachSoon:"Frach kommt um", frachClean:"alles Material vom Vorfeld nehmen",
     planBtn:"Plan · was wohin bringen", planTitle:"Verteilplan",
     planEmpty:"Nichts zu bewegen: alles ausgeglichen oder keine Daten.",
     needOutside:"Von aussen holen", freeSurplus:"Frei übrig (kann weg)",
@@ -430,12 +452,14 @@ function fromToTxt(from,to){ return state.lang==="es" ? "de "+from+" a "+to : "v
 /* ============================================================
    Estado + persistencia
    ============================================================ */
-let state = { data:{}, lang:"es", view:{name:"home"}, mapCat:"todo", day:"" };
+let state = { data:{}, lang:"es", view:{name:"home"}, mapCat:"todo", day:"", frachs:[], agenda:[] };
 
 function load(){
   try { const d = localStorage.getItem(LS_DATA); if (d) state.data = JSON.parse(d); } catch(e){}
   try { const l = localStorage.getItem(LS_LANG); if (l) state.lang = l; } catch(e){}
   try { const dy = localStorage.getItem(LS_DAY); if (dy) state.day = dy; } catch(e){}
+  try { const fr = localStorage.getItem(LS_FRACH); if (fr) state.frachs = JSON.parse(fr); } catch(e){}
+  try { const ag = localStorage.getItem(LS_AGENDA); if (ag) state.agenda = JSON.parse(ag); } catch(e){}
   if (!state.day){ state.day = todayStr(); saveDay(); }
 }
 function save(){
@@ -443,6 +467,16 @@ function save(){
 }
 function saveLang(){ try { localStorage.setItem(LS_LANG, state.lang); } catch(e){} }
 function saveDay(){ try { localStorage.setItem(LS_DAY, state.day); } catch(e){} }
+function saveFrach(){ try { localStorage.setItem(LS_FRACH, JSON.stringify(state.frachs||[])); } catch(e){} }
+function saveAgenda(){ try { localStorage.setItem(LS_AGENDA, JSON.stringify(state.agenda||[])); } catch(e){} }
+function nextFrach(){
+  let best = null;
+  (state.frachs||[]).forEach(hhmm => {
+    const m = minsUntil(hhmm);
+    if (m!=null && m>=-10 && m<=30){ if (best==null || m<best.m) best = {hhmm, m}; }
+  });
+  return best;
+}
 
 function todayStr(){
   const d = new Date();
@@ -475,6 +509,8 @@ function getStand(id){
   if (s.post.kg == null) s.post.kg = "";
   if (s.retirar == null) s.retirar = 0;
   if (s.aviso == null) s.aviso = 0;
+  if (s.dnata == null) s.dnata = 0;
+  if (s.max4 == null) s.max4 = 0;
   return s;
 }
 // Accesos por material
@@ -565,15 +601,29 @@ function screenHome(){
       '<button class="langBtn '+(state.lang==="de"?"on":"")+'" data-action="lang" data-lang="de">DE</button>'+
     '</div></div></div>';
   const isOld = state.day && state.day !== todayStr();
+  const fr = nextFrach();
+  if (fr) html += '<div class="frachBanner">⚠️ '+t.frachSoon+' '+fr.hhmm+' — '+t.frachClean+'</div>';
   html += '<div class="dayBar"><span class="dayText">'+t.dayLabel+': <b>'+fmtDay(state.day)+'</b></span>'+
     '<button class="dayBtn" data-action="newday">'+t.newDay+'</button></div>';
   if (isOld) html += '<div class="banner"><span>'+t.oldDayMsg+' ('+fmtDay(state.day)+')</span>'+
     '<button class="bannerBtn" data-action="newday">'+t.startNewDay+'</button></div>';
   html += '<div class="actions">'+
     '<button class="bigBtn photoBtn" data-action="photo"><span>'+t.photoBtn+'</span><span>→</span></button>'+
+    '<button class="bigBtn agendaBtn" data-action="agenda"><span>'+t.agendaBtn+'</span><span>→</span></button>'+
     '<button class="bigBtn planBtn" data-action="plan"><span>'+t.planBtn+'</span><span>→</span></button>'+
     '<button class="bigBtn mapBtn" data-action="map"><span>'+t.mapBtn+'</span><span>→</span></button>'+
     '<button class="bigBtn balBtn" data-action="balance"><span>'+t.balanceBtn+'</span><span>→</span></button></div>';
+  // Frach: anotar horas
+  html += '<div class="frachBox"><div class="frachHead"><span class="frachTitle">'+t.frachTitle+'</span>'+
+    '<button class="frachAdd" data-action="frach-add">'+t.frachAdd+'</button></div>';
+  if ((state.frachs||[]).length){
+    html += '<div class="frachList">';
+    state.frachs.slice().sort().forEach(hh => {
+      html += '<span class="frachChip">'+hh+' <button class="frachDel" data-action="frach-del" data-t="'+hh+'">✕</button></span>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
   html += '<div class="groups">';
   groups.forEach(g => {
     html += '<div class="group"><div class="groupHead"><span class="dot" style="background:'+g.color+'"></span><span>'+g.parent+'</span></div><div class="areaRow">';
@@ -732,6 +782,8 @@ function screenStand(){
 
   // Estado de la plaza
   html += '<div id="standStatus">'+standStatusHTML(id, s, t)+'</div>';
+  if (s.dnata) html += '<div class="warnBar">⚠️ '+t.warnDnata+'</div>';
+  if (s.max4) html += '<div class="warnBar">⚠️ '+t.warnMax4+'</div>';
   if (Number(s.retirar)>0) html += '<div class="retirarBar">📤 '+s.retirar+' '+t.photoRetirar+'</div>';
   if (s.aviso) html += '<div class="salidaBar">↗ '+t.photoSalida+'</div>';
 
@@ -1115,6 +1167,12 @@ async function handlePhoto(dataUrl){
   }
 }
 
+function airlineFlags(flight){
+  const f = String(flight||"").toUpperCase();
+  const isDL = f.startsWith("DL");
+  const isUA = f.startsWith("UA");
+  return { dnata: isDL, max4: isDL || isUA };
+}
 function applyPhotoFlights(flights){
   flights.forEach(f => {
     if (!f.stand || !AREA_OF_STAND[f.stand]) return;
@@ -1127,9 +1185,61 @@ function applyPhotoFlights(flights){
       if (Number(f.dolly)>0) s.dolly.need = Number(f.dolly);
       if (Number(f.trailer)>0) s.trailer.need = Number(f.trailer);
       s.retirar = Number(f.empties)>0 ? Number(f.empties) : 0;
+      const fl = airlineFlags(f.flight);
+      s.dnata = fl.dnata ? 1 : 0;
+      s.max4 = fl.max4 ? 1 : 0;
+      s.flight = f.flight || "";
     }
   });
   save();
+}
+
+function screenAgenda(){
+  const t = T[state.lang];
+  const flights = state.agenda || [];
+  let html = topbar(t.agendaTitle, "", "#0d9488", "home");
+  const fr = nextFrach();
+  if (fr) html += '<div class="frachBanner" style="margin:12px 16px 0">⚠️ '+t.frachSoon+' '+fr.hhmm+' — '+t.frachClean+'</div>';
+  const arr = flights.filter(f => !f.isDeparture && f.stand && AREA_OF_STAND[f.stand]);
+  const dep = flights.filter(f => f.isDeparture && f.stand && AREA_OF_STAND[f.stand]);
+  arr.sort((a,b) => { const ma=minsUntil(a.time), mb=minsUntil(b.time); if (ma==null) return 1; if (mb==null) return -1; return ma-mb; });
+
+  if (!arr.length && !dep.length){
+    html += '<div class="block"><div class="empty" style="padding:6px 0">'+t.agendaEmpty+'</div></div>';
+    return html;
+  }
+
+  arr.forEach(f => {
+    const wNeed = f.wagenKg>0 ? wagenNeeded(String(f.wagenKg), f.stand) : 0;
+    const pNeed = f.postKg>0 ? Math.ceil(Number(f.postKg)/150) : 0;
+    let chips = "";
+    if (wNeed>0) chips += '<span class="pvChip">Wagen '+wNeed+'</span>';
+    if (pNeed>0) chips += '<span class="pvChip">Postwagen '+pNeed+'</span>';
+    if (Number(f.dolly)>0) chips += '<span class="pvChip">Dolly '+f.dolly+'</span>';
+    if (Number(f.trailer)>0) chips += '<span class="pvChip">Tráiler '+f.trailer+'</span>';
+    const fl = airlineFlags(f.flight);
+    let warns = "";
+    if (fl.dnata) warns += '<span class="pvWarn">⚠️ DNata</span>';
+    if (fl.max4) warns += '<span class="pvWarn">⚠️ máx 4</span>';
+    const mins = minsUntil(f.time);
+    const urgent = (mins!=null && mins<=60);
+    const soon = urgent ? '<span class="pvSoon">⏰ '+(mins<=0 ? t.photoNow : ("en "+mins+" min"))+'</span>' : '';
+    html += '<button class="block agRow'+(urgent?' pvUrgent':'')+'" data-action="open-stand" data-stand="'+f.stand+'"><div class="pvHead">'+
+      (f.time?'<span class="pvTime tnum">'+f.time+'</span>':'')+
+      '<span class="pvStand tnum">'+f.stand+'</span>'+
+      '<span class="pvFlight">'+(f.flight||"")+(f.type?(" · "+f.type):"")+'</span>'+soon+'</div>'+
+      '<div class="pvChips">'+(chips||'<span class="pvNone">—</span>')+warns+'</div></button>';
+  });
+
+  if (dep.length){
+    html += '<div class="block"><div class="blockTitle">'+t.photoDepTitle+'</div>';
+    dep.forEach(f => {
+      html += '<div class="pvDepRow"><span class="pvStand tnum">'+f.stand+'</span>'+
+        '<span class="pvDepTxt">↗ '+(f.flight||"")+(f.time?(" · "+f.time):"")+' · '+t.photoSalida+'</span></div>';
+    });
+    html += '</div>';
+  }
+  return html;
 }
 
 function screenPhoto(){
@@ -1193,6 +1303,7 @@ function render(){
     case "map": html = screenMap(); break;
     case "plan": html = screenPlan(); break;
     case "photo": html = screenPhoto(); break;
+    case "agenda": html = screenAgenda(); break;
   }
   frame.innerHTML = html;
   frame.scrollIntoView({block:"start"});
@@ -1227,7 +1338,14 @@ document.addEventListener("click", function(e){
   }
   if (action==="photo"){ state.photoList = []; const el2 = document.getElementById("photoInput"); if (el2) el2.click(); return; }
   if (action==="photo-more"){ const el3 = document.getElementById("photoInput"); if (el3) el3.click(); return; }
-  if (action==="photo-load"){ applyPhotoFlights(state.photoList||[]); state.photoList=null; state.view={name:"home"}; render(); toast("✓ Cargado"); return; }
+  if (action==="photo-load"){ applyPhotoFlights(state.photoList||[]); state.agenda = (state.photoList||[]).slice(); saveAgenda(); state.photoList=null; state.view={name:"home"}; render(); toast("✓ Cargado"); return; }
+  if (action==="agenda"){ state.view = {name:"agenda"}; render(); return; }
+  if (action==="frach-add"){
+    const v = window.prompt(T[state.lang].frachAsk, "");
+    if (v && /^\d{1,2}:\d{2}$/.test(v.trim())){ state.frachs = state.frachs||[]; if (state.frachs.indexOf(v.trim())<0) state.frachs.push(v.trim()); saveFrach(); render(); }
+    return;
+  }
+  if (action==="frach-del"){ state.frachs = (state.frachs||[]).filter(x => x!==el.dataset.t); saveFrach(); render(); return; }
   if (action==="balance"){ state.view = {name:"balance"}; render(); return; }
   if (action==="open-area"){ state.view = {name:"area", areaId: el.dataset.area}; render(); return; }
   if (action==="open-stand"){ state.view = {name:"stand", standId: el.dataset.stand}; render(); return; }
