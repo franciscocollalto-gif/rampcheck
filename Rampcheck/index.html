@@ -152,6 +152,10 @@
   .zbTag.red { color: #D64545; } .zbTag.green { color: #1F9D57; } .zbTag.zero { color: #64748b; }
 
   .groups { padding: 18px 20px 0; }
+  .sectorCard { width: 100%; display: flex; flex-direction: column; gap: 4px; text-align: left; background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; }
+  .sectorTop { display: flex; align-items: center; gap: 10px; }
+  .sectorName { font-size: 19px; font-weight: 800; }
+  .sectorSub { font-size: 12px; color: #64748b; font-weight: 600; margin-left: 22px; }
   .group { margin-bottom: 22px; }
   .groupHead { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 10px; }
   .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
@@ -329,10 +333,10 @@ const AREAS = [
   { id:"ALPHA_N", parent:"Alpha", label:"Alpha Nord", color:"#D64545", stands:["A57","A49","A17","A15","A13","A11","A09","A07","A05","A03"] },
   { id:"ALPHA_S", parent:"Alpha", label:"Alpha Süd", color:"#D64545", stands:["A48","A46","A44","A42","A10","A08","A04","A02"] },
   { id:"BRAVO", parent:"Bravo", label:"Bravo", color:"#2F6FB3", stands:["B43","B39","B35","B31","B45","B41","B38","B37","B33"] },
-  { id:"INDIA", parent:"India", label:"India", color:"#3AA76D", stands:["I01","I02","I03","I04","I05"] },
   { id:"CHARLIE", parent:"Charlie", label:"Charlie", color:"#C9A227", stands:["C50","C51","C52","C53","C54","C55","C56","C57","C58","C59","C60"] },
   { id:"DELTA", parent:"Delta", label:"Delta", color:"#7A4FB5", stands:["D01","D02","D03","D04","D05","D06","D07","D08","D09","D10","D11","D12","D13","D14","D15","D16","D17"] },
   { id:"GOLF", parent:"Golf", label:"Golf", color:"#3AA76D", stands:["G01","G02","G03","G04","G05","G06","G07","G08","G09","G10","G11","G12","G13","G14","G16","G17"] },
+  { id:"INDIA", parent:"India", label:"India", color:"#3AA76D", stands:["I01","I02","I03","I04","I05"] },
   { id:"HOTEL", parent:"Hotel", label:"Hotel", color:"#8A6D4A", stands:["H11","H12","H13","H14","H15","H16","H21","H32","H33","H34","H35"] },
   { id:"FOXTROT", parent:"Foxtrot", label:"Foxtrot", color:"#2F6FB3", stands:["F70","F71","F72"] },
   { id:"WHISKEY", parent:"Whiskey", label:"Whiskey", color:"#8455C2", stands:["W01","W02","W03","W04","W05","W21","W22","W23","W24","W30","W40","W50","W51","W52","W53","W54","W55","W56","W57","W58","W59","W60"] },
@@ -340,6 +344,13 @@ const AREAS = [
   { id:"PAPA", parent:"Papa", label:"Papa", color:"#8455C2", stands:["P31","P32","P33","P34","P35","P36","P37","P3A","P3B","P3C","P3D"] },
 ];
 const AREA_BY_ID = {}; AREAS.forEach(a => AREA_BY_ID[a.id] = a);
+const SECTORS = [
+  { id:"SEC_ECHO",  name:"Echo",            color:"#EA7C2B", areas:["ECHO_N","ECHO_S"] },
+  { id:"SEC_ALPHA", name:"Alpha",           color:"#D64545", areas:["ALPHA_N","ALPHA_S","FOXTROT"] },
+  { id:"SEC_BRAVO", name:"Bravo",           color:"#2F6FB3", areas:["BRAVO"] },
+  { id:"SEC_CD",    name:"Charlie / Delta", color:"#C9A227", areas:["CHARLIE","DELTA","TANGO","GOLF"] },
+];
+const SECTORS_LOW = ["INDIA","HOTEL","WHISKEY","PAPA"];
 const AREA_OF_STAND = {}; AREAS.forEach(a => a.stands.forEach(s => AREA_OF_STAND[s] = a));
 const ALL_STANDS = []; AREAS.forEach(a => a.stands.forEach(s => ALL_STANDS.push(s)));
 const DEPOTS = [
@@ -376,7 +387,7 @@ const T = {
     warnDnata:"Tráiler DNata (especial)", warnMax4:"Máximo 4 en pista",
     agendaBtn:"🕐 Agenda (por hora)", agendaTitle:"Agenda", agendaEmpty:"Sacá una foto para armar la agenda por hora.",
     frachTitle:"Frach — avisos", frachAsk:"¿A qué hora el frach? (ej. 14:00)", frachAdd:"+ Hora de frach",
-    frachSoon:"Viene frach a las", frachClean:"sacá todo el material de la pista",
+    frachSoon:"Viene frach a las", frachClean:"sacá todo el material de la pista", lowUse:"Poco uso",
     planBtn:"Plan · qué llevar y a dónde", planTitle:"Plan de traslados",
     planEmpty:"Nada que mover: todo está nivelado o sin datos.",
     needOutside:"Falta traer de afuera", freeSurplus:"Sobra libre (se puede sacar)",
@@ -414,7 +425,7 @@ const T = {
     warnDnata:"DNata-Trailer (speziell)", warnMax4:"Max. 4 auf dem Vorfeld",
     agendaBtn:"🕐 Agenda (nach Uhrzeit)", agendaTitle:"Agenda", agendaEmpty:"Mach ein Foto für die Agenda nach Uhrzeit.",
     frachTitle:"Frach — Hinweise", frachAsk:"Um wie viel Uhr der Frach? (z.B. 14:00)", frachAdd:"+ Frach-Uhrzeit",
-    frachSoon:"Frach kommt um", frachClean:"alles Material vom Vorfeld nehmen",
+    frachSoon:"Frach kommt um", frachClean:"alles Material vom Vorfeld nehmen", lowUse:"Wenig genutzt",
     planBtn:"Plan · was wohin bringen", planTitle:"Verteilplan",
     planEmpty:"Nichts zu bewegen: alles ausgeglichen oder keine Daten.",
     needOutside:"Von aussen holen", freeSurplus:"Frei übrig (kann weg)",
@@ -625,33 +636,66 @@ function screenHome(){
   }
   html += '</div>';
   html += '<div class="groups">';
-  groups.forEach(g => {
-    html += '<div class="group"><div class="groupHead"><span class="dot" style="background:'+g.color+'"></span><span>'+g.parent+'</span></div><div class="areaRow">';
-    g.areas.forEach(a => {
-      const st = areaStatus(a);
-      let chip = "";
-      if (st.deficit>0) chip = '<span class="chipFalta">'+faltanTxt(st.deficit)+'</span>';
-      else if (st.touched>0) chip = '<span class="chipOk">'+t.ok+'</span>';
-      html += '<button class="areaCard" data-action="open-area" data-area="'+a.id+'">'+
-        '<span class="areaLabel">'+a.label+'</span>'+
-        '<span class="areaMeta">'+a.stands.length+' '+t.stands+'</span>'+chip+'</button>';
-    });
-    html += '</div></div>';
+  // Sectores principales
+  SECTORS.forEach(sec => {
+    let deficit = 0, touched = 0;
+    sec.areas.forEach(id => { const st = areaStatus(AREA_BY_ID[id]); deficit += st.deficit; touched += st.touched; });
+    let chip = "";
+    if (deficit>0) chip = '<span class="chipFalta">'+faltanTxt(deficit)+'</span>';
+    else if (touched>0) chip = '<span class="chipOk">'+t.ok+'</span>';
+    const sub = sec.areas.map(id => AREA_BY_ID[id].label).join(" · ");
+    html += '<button class="sectorCard" data-action="open-sector" data-sector="'+sec.id+'">'+
+      '<span class="sectorTop"><span class="dot" style="background:'+sec.color+'"></span><span class="sectorName">'+sec.name+'</span>'+chip+'</span>'+
+      '<span class="sectorSub">'+sub+'</span></button>';
+  });
+  // Poco uso
+  html += '<div class="groupHead" style="margin-top:18px"><span class="dot" style="background:#94a3b8"></span><span>'+t.lowUse+'</span></div><div class="areaRow">';
+  SECTORS_LOW.forEach(id => {
+    const a = AREA_BY_ID[id]; if (!a) return;
+    const st = areaStatus(a);
+    let chip = "";
+    if (st.deficit>0) chip = '<span class="chipFalta">'+faltanTxt(st.deficit)+'</span>';
+    else if (st.touched>0) chip = '<span class="chipOk">'+t.ok+'</span>';
+    html += '<button class="areaCard" data-action="open-area" data-area="'+a.id+'">'+
+      '<span class="areaLabel">'+a.label+'</span>'+
+      '<span class="areaMeta">'+a.stands.length+' '+t.stands+'</span>'+chip+'</button>';
+  });
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function screenSector(){
+  const t = T[state.lang];
+  const sec = SECTORS.find(s => s.id===state.view.sectorId);
+  if (!sec){ state.view={name:"home"}; return screenHome(); }
+  let html = topbar(sec.name, "", sec.color, "home");
+  html += '<div class="areaRow" style="padding:20px">';
+  sec.areas.forEach(id => {
+    const a = AREA_BY_ID[id]; if (!a) return;
+    const st = areaStatus(a);
+    let chip = "";
+    if (st.deficit>0) chip = '<span class="chipFalta">'+faltanTxt(st.deficit)+'</span>';
+    else if (st.touched>0) chip = '<span class="chipOk">'+t.ok+'</span>';
+    html += '<button class="areaCard" data-action="open-area" data-area="'+a.id+'" data-sec="'+sec.id+'">'+
+      '<span class="areaLabel">'+a.label+'</span>'+
+      '<span class="areaMeta">'+a.stands.length+' '+t.stands+'</span>'+chip+'</button>';
   });
   html += '</div>';
   return html;
 }
 
-function topbar(title, sub, color, backTo, backArea){
+function topbar(title, sub, color, backTo, backArea, backSec){
   return '<div class="topbar" style="border-color:'+color+'">'+
-    '<button class="back" data-action="back" data-to="'+backTo+'" '+(backArea?('data-area="'+backArea+'"'):'')+'>←</button>'+
+    '<button class="back" data-action="back" data-to="'+backTo+'" '+(backArea?('data-area="'+backArea+'"'):'')+(backSec?(' data-sec="'+backSec+'"'):'')+'>←</button>'+
     '<div><div class="topTitle">'+title+'</div>'+(sub?('<div class="topSub">'+sub+'</div>'):'')+'</div></div>';
 }
 
 function screenArea(){
   const t = T[state.lang];
   const area = AREA_BY_ID[state.view.areaId];
-  let html = topbar(area.label, "", area.color, "home");
+  const secBack = state.view.secId ? "sector" : "home";
+  let html = topbar(area.label, "", area.color, secBack, state.view.secId||"");
   html += '<div class="standGrid">';
   area.stands.forEach(id => {
     const s = state.data[id] || emptyStand();
@@ -773,7 +817,7 @@ function screenStand(){
   const wNeed = wagenNeeded(s.weight, id);
   const loads = Math.ceil((Number(s.weight)||0)/KG);
 
-  let html = topbar(id, area.label, area.color, "area", area.id);
+  let html = topbar(id, area.label, area.color, "area", area.id, state.view.secId||"");
 
   // Peso (calcula Necesito de Wagen)
   html += '<div class="block"><div class="blockTitle">'+t.weightTitle+'</div>'+
@@ -1297,6 +1341,7 @@ function render(){
   switch(state.view.name){
     case "home": html = screenHome(); break;
     case "area": html = screenArea(); break;
+    case "sector": html = screenSector(); break;
     case "stand": html = screenStand(); break;
     case "depot": html = screenDepot(); break;
     case "balance": html = screenBalance(); break;
@@ -1347,8 +1392,14 @@ document.addEventListener("click", function(e){
   }
   if (action==="frach-del"){ state.frachs = (state.frachs||[]).filter(x => x!==el.dataset.t); saveFrach(); render(); return; }
   if (action==="balance"){ state.view = {name:"balance"}; render(); return; }
-  if (action==="open-area"){ state.view = {name:"area", areaId: el.dataset.area}; render(); return; }
-  if (action==="open-stand"){ state.view = {name:"stand", standId: el.dataset.stand}; render(); return; }
+  if (action==="open-area"){ state.view = {name:"area", areaId: el.dataset.area, secId: el.dataset.sec||""}; render(); return; }
+  if (action==="open-sector"){
+    const sec = SECTORS.find(s => s.id===el.dataset.sector);
+    if (sec && sec.areas.length===1){ state.view = {name:"area", areaId: sec.areas[0], secId: sec.id}; }
+    else state.view = {name:"sector", sectorId: el.dataset.sector};
+    render(); return;
+  }
+  if (action==="open-stand"){ state.view = {name:"stand", standId: el.dataset.stand, secId: state.view.secId||""}; render(); return; }
   if (action==="clear-stand"){
     const id = el.dataset.stand;
     if (!window.confirm(T[state.lang].clearStandAsk)) return;
@@ -1373,7 +1424,8 @@ document.addEventListener("click", function(e){
   if (action==="mapcat"){ state.mapCat = el.dataset.cat; render(); return; }
   if (action==="back"){
     const to = el.dataset.to;
-    if (to==="area") state.view = {name:"area", areaId: el.dataset.area};
+    if (to==="area") state.view = {name:"area", areaId: el.dataset.area, secId: el.dataset.sec||""};
+    else if (to==="sector") state.view = {name:"sector", sectorId: el.dataset.area};
     else state.view = {name:"home"};
     render(); return;
   }
