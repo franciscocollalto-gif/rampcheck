@@ -77,6 +77,8 @@
   .depEditRow { display: flex; align-items: center; justify-content: center; gap: 8px; }
   .clearStandBtn { width: 100%; background: #fff; color: #D64545; border: 1.5px solid #fecaca; border-radius: 12px; padding: 12px; font-weight: 800; font-size: 15px; cursor: pointer; }
   .clearStandBtn:active { background: #fef2f2; }
+  .clearStandTop { flex-shrink: 0; width: 44px; height: 44px; border-radius: 11px; border: 1.5px solid #fecaca; background: #fff5f5; font-size: 20px; cursor: pointer; }
+  .clearStandTop:active { background: #fee2e2; }
   .warnBar { margin: 6px 16px 0; background: #fff7ed; color: #c2410c; font-weight: 800; font-size: 13px; padding: 10px 14px; border-radius: 12px; border: 1px solid #fed7aa; }
   .flightRow { display: flex; align-items: center; gap: 6px; margin: 8px 16px 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 10px; }
   .flightIco { font-size: 15px; color: #64748b; }
@@ -652,10 +654,7 @@ function screenHome(){
     '<button class="bannerBtn" data-action="newday">'+t.startNewDay+'</button></div>';
   html += '<div class="actions">'+
     '<button class="bigBtn photoBtn" data-action="photo"><span>'+t.photoBtn+'</span><span>→</span></button>'+
-    '<button class="bigBtn agendaBtn" data-action="agenda"><span>'+t.agendaBtn+'</span><span>→</span></button>'+
-    '<button class="bigBtn planBtn" data-action="plan"><span>'+t.planBtn+'</span><span>→</span></button>'+
-    '<button class="bigBtn mapBtn" data-action="map"><span>'+t.mapBtn+'</span><span>→</span></button>'+
-    '<button class="bigBtn balBtn" data-action="balance"><span>'+t.balanceBtn+'</span><span>→</span></button></div>';
+    '<button class="bigBtn agendaBtn" data-action="agenda"><span>'+t.agendaBtn+'</span><span>→</span></button></div>';
   // Frach: anotar horas
   html += '<div class="frachBox"><div class="frachHead"><span class="frachTitle">'+t.frachTitle+'</span>'+
     '<button class="frachAdd" data-action="frach-add">'+t.frachAdd+'</button></div>';
@@ -859,27 +858,32 @@ function screenStand(){
   const wNeed = wagenNeeded(s.weight, id);
   const loads = Math.ceil((Number(s.weight)||0)/KG);
 
-  let html = topbar(id, area.label, area.color, "area", area.id, state.view.secId||"");
+  // Barra superior con botón vaciar a la derecha
+  let html = '<div class="topbar" style="border-color:'+area.color+'">'+
+    '<button class="back" data-action="back" data-to="area" data-area="'+area.id+'"'+(state.view.secId?(' data-sec="'+state.view.secId+'"'):'')+'>←</button>'+
+    '<div style="flex:1"><div class="topTitle">'+id+'</div><div class="topSub">'+area.label+'</div></div>'+
+    '<button class="clearStandTop" data-action="clear-stand" data-stand="'+id+'">🗑</button></div>';
 
-  // Peso (calcula Necesito de Wagen)
-  html += '<div class="block"><div class="blockTitle">'+t.weightTitle+'</div>'+
-    '<div class="weightRow"><input class="weightInput tnum" id="weightInput" type="number" inputmode="numeric" placeholder="0" value="'+esc(s.weight)+'" /><span class="unit">kg</span></div>'+
-    '<div class="blockHint" id="needBreak">'+(wNeed>0?perLoadTxt(loads, crewFor(id)):t.calcHint)+'</div></div>';
-
-  // Estado de la plaza
-  html += '<div id="standStatus">'+standStatusHTML(id, s, t)+'</div>';
-  html += '<div style="padding:2px 16px 0"><button class="clearStandBtn" data-action="clear-stand" data-stand="'+id+'">🗑 '+t.clearStand+'</button></div>';
+  // Vuelo · avión · hora (arriba)
   html += '<div class="flightRow">'+
     '<span class="flightIco">✈</span>'+
     '<input class="flightInp" data-fl="flight" placeholder="'+t.flPlace+'" value="'+esc(s.flight||"")+'" />'+
     '<input class="flightInp acType" data-fl="acType" placeholder="'+t.acPlace+'" value="'+esc(s.acType||"")+'" />'+
     '<input class="flightInp eta" data-fl="eta" placeholder="'+t.etaPlace+'" value="'+esc(s.eta||"")+'" />'+
     '</div>';
+
+  // Avisos
+  html += '<div id="standStatus">'+standStatusHTML(id, s, t)+'</div>';
   if (s.dnata) html += '<div class="warnBarR">⚠️ '+t.warnDnataFlight+'</div>';
   if (s.dnataTrailer) html += '<div class="warnBar">⚠️ '+t.warnDnata+'</div>';
   if (s.max4) html += '<div class="warnBar">⚠️ '+t.warnMax4+'</div>';
   if (Number(s.retirar)>0) html += '<div class="retirarBar">📤 '+s.retirar+' '+t.photoRetirar+'</div>';
   if (s.aviso) html += '<div class="salidaBar">↗ '+t.photoSalida+'</div>';
+
+  // Peso (calcula Necesito de Wagen)
+  html += '<div class="block"><div class="blockTitle">'+t.weightTitle+'</div>'+
+    '<div class="weightRow"><input class="weightInput tnum" id="weightInput" type="number" inputmode="numeric" placeholder="0" value="'+esc(s.weight)+'" /><span class="unit">kg</span></div>'+
+    '<div class="blockHint" id="needBreak">'+(wNeed>0?perLoadTxt(loads, crewFor(id)):t.calcHint)+'</div></div>';
 
   // Una tarjeta por material
   MAT_KEYS.forEach(m => {
