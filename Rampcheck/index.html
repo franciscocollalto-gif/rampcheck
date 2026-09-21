@@ -361,12 +361,14 @@ const AREAS = [
 ];
 const AREA_BY_ID = {}; AREAS.forEach(a => AREA_BY_ID[a.id] = a);
 const SECTORS = [
-  { id:"SEC_ECHO",  name:"Echo",            color:"#EA7C2B", areas:["ECHO_N","ECHO_S"] },
-  { id:"SEC_ALPHA", name:"Alpha",           color:"#D64545", areas:["ALPHA_N","ALPHA_S","FOXTROT"] },
+  { id:"SEC_ECHO_N", name:"Echo Nord", color:"#EA7C2B", areas:["ECHO_N"] },
+  { id:"SEC_ECHO_S", name:"Echo Süd",  color:"#EA7C2B", areas:["ECHO_S"] },
+  { id:"SEC_ALPHA_S", name:"Alpha Süd",  color:"#D64545", areas:["ALPHA_S","FOXTROT"] },
+  { id:"SEC_ALPHA_N", name:"Alpha Nord", color:"#D64545", areas:["ALPHA_N","INDIA"] },
   { id:"SEC_BRAVO", name:"Bravo",           color:"#2F6FB3", areas:["BRAVO"] },
   { id:"SEC_CD",    name:"Charlie / Delta", color:"#C9A227", areas:["CHARLIE","DELTA","TANGO","GOLF"] },
 ];
-const SECTORS_LOW = ["INDIA","HOTEL","WHISKEY","PAPA"];
+const SECTORS_LOW = ["HOTEL","WHISKEY","PAPA"];
 const AREA_OF_STAND = {}; AREAS.forEach(a => a.stands.forEach(s => AREA_OF_STAND[s] = a));
 const ALL_STANDS = []; AREAS.forEach(a => a.stands.forEach(s => ALL_STANDS.push(s)));
 const DEPOTS = [
