@@ -186,6 +186,9 @@
   .standCell.on { border-color: #1e293b; border-width: 2px; }
   .standName { font-size: 17px; font-weight: 700; }
   .cellChips { display: flex; flex-direction: column; gap: 4px; width: 100%; margin-top: 8px; }
+  .cellNeed { font-size: 10px; font-weight: 800; color: #2563eb; letter-spacing: .2px; }
+  .depHint { margin-top: 8px; font-size: 12px; font-weight: 700; color: #6d28d9; background: #f5f3ff; border: 1px solid #ddd6fe; padding: 7px 10px; border-radius: 8px; }
+  .warnBarR { margin: 6px 16px 0; background: #fef2f2; color: #b91c1c; font-weight: 800; font-size: 13px; padding: 10px 14px; border-radius: 12px; border: 1px solid #fecaca; }
   .cellChip { font-size: 11px; font-weight: 800; padding: 3px 6px; border-radius: 6px; color: #fff; text-align: center; white-space: nowrap; }
   .neg { background: #D64545; }
   .pos { background: #1F9D57; }
@@ -369,6 +372,7 @@ const DEPOTS = [
   { id:"DEP_GOLF", name:"Golf (wagelys)" },
   { id:"DEP_INDIA", name:"India" },
   { id:"DEP_A10", name:"A10" },
+  { id:"DEP_A57", name:"A57" },
 ];
 
 const MAT_KEYS = ["wagen","dolly","trailer","wageli","post"];
@@ -392,8 +396,8 @@ const T = {
     depotsWord:"Depósitos (Abstellplatz)", depotWord:"Depósito · solo lo que hay",
     photoMore:"📷 Sacar otra foto", photoNow:"ya", photoDepTitle:"Salidas · la plaza se libera",
     clearStand:"Vaciar plaza (próximo avión)", clearStandAsk:"¿Vaciar esta plaza para preparar el próximo avión?", clearedWord:"vaciada",
-    warnDnata:"Tráiler DNata (especial)", warnMax4:"Máximo 4 en pista",
-    flPlace:"Vuelo", acPlace:"Avión", etaPlace:"Hora",
+    warnDnata:"Tráiler DNata (especial)", warnMax4:"Máximo 4 en pista", warnDnataFlight:"Vuelo DNata (no Swissport)",
+    flPlace:"Vuelo", acPlace:"Avión", etaPlace:"Hora", depHave:"hay en depósito",
     agendaBtn:"🕐 Agenda (por hora)", agendaTitle:"Agenda", agendaEmpty:"Sacá una foto para armar la agenda por hora.",
     frachTitle:"Frach — avisos", frachAsk:"¿A qué hora el frach? (ej. 14:00)", frachAdd:"+ Hora de frach",
     frachSoon:"Viene frach a las", frachClean:"sacá todo el material de la pista", lowUse:"Poco uso",
@@ -431,8 +435,8 @@ const T = {
     depotsWord:"Ablageplätze (Abstellplatz)", depotWord:"Ablage · nur Bestand",
     photoMore:"📷 Weiteres Foto", photoNow:"jetzt", photoDepTitle:"Abflüge · Platz wird frei",
     clearStand:"Platz leeren (nächstes Flugzeug)", clearStandAsk:"Diesen Platz für das nächste Flugzeug leeren?", clearedWord:"geleert",
-    warnDnata:"DNata-Trailer (speziell)", warnMax4:"Max. 4 auf dem Vorfeld",
-    flPlace:"Flug", acPlace:"Typ", etaPlace:"Zeit",
+    warnDnata:"DNata-Trailer (speziell)", warnMax4:"Max. 4 auf dem Vorfeld", warnDnataFlight:"DNata-Flug (nicht Swissport)",
+    flPlace:"Flug", acPlace:"Typ", etaPlace:"Zeit", depHave:"im Ablageplatz",
     agendaBtn:"🕐 Agenda (nach Uhrzeit)", agendaTitle:"Agenda", agendaEmpty:"Mach ein Foto für die Agenda nach Uhrzeit.",
     frachTitle:"Frach — Hinweise", frachAsk:"Um wie viel Uhr der Frach? (z.B. 14:00)", frachAdd:"+ Frach-Uhrzeit",
     frachSoon:"Frach kommt um", frachClean:"alles Material vom Vorfeld nehmen", lowUse:"Wenig genutzt",
@@ -531,6 +535,7 @@ function getStand(id){
   if (s.retirar == null) s.retirar = 0;
   if (s.aviso == null) s.aviso = 0;
   if (s.dnata == null) s.dnata = 0;
+  if (s.dnataTrailer == null) s.dnataTrailer = 0;
   if (s.max4 == null) s.max4 = 0;
   return s;
 }
@@ -555,6 +560,15 @@ function getDepot(id){
   const d = state.data[id];
   MAT_KEYS.forEach(m => { if (!d[m] || typeof d[m] !== "object") d[m] = { have:0 }; if (d[m].have == null) d[m].have = 0; });
   return d;
+}
+function depotStock(mat){
+  let total = 0, where = [];
+  DEPOTS.forEach(dp => {
+    const d = state.data[dp.id];
+    const h = Number(d && d[mat] && d[mat].have) || 0;
+    if (h>0){ total += h; where.push(dp.name+" "+h); }
+  });
+  return { total, where };
 }
 
 /* ============================================================
@@ -711,6 +725,11 @@ function screenArea(){
     const s = state.data[id] || emptyStand();
     const items = standItems(s, id);
     const touched = isTouched(s);
+    // necesito en chiquito (arriba)
+    const shortMap = { wagen:"W", dolly:"D", trailer:"T", wageli:"Dg", post:"P" };
+    let needTxt = "";
+    MAT_KEYS.forEach(m => { const n = matNeed(id, s, m); if (n>0) needTxt += (needTxt?" · ":"") + n + shortMap[m]; });
+    const needLine = needTxt ? '<span class="cellNeed">'+needTxt+'</span>' : '';
     let chips = "";
     if (items.length){
       chips = '<span class="cellChips">';
@@ -722,7 +741,7 @@ function screenArea(){
       chips = '<span class="cellDone">✓</span>';
     }
     html += '<button class="standCell '+(touched?"on":"")+'" data-action="open-stand" data-stand="'+id+'">'+
-      '<span class="standName tnum">'+id+'</span>'+chips+'</button>';
+      needLine+'<span class="standName tnum">'+id+'</span>'+chips+'</button>';
   });
   html += '</div>';
 
@@ -836,13 +855,15 @@ function screenStand(){
 
   // Estado de la plaza
   html += '<div id="standStatus">'+standStatusHTML(id, s, t)+'</div>';
+  html += '<div style="padding:2px 16px 0"><button class="clearStandBtn" data-action="clear-stand" data-stand="'+id+'">🗑 '+t.clearStand+'</button></div>';
   html += '<div class="flightRow">'+
     '<span class="flightIco">✈</span>'+
     '<input class="flightInp" data-fl="flight" placeholder="'+t.flPlace+'" value="'+esc(s.flight||"")+'" />'+
     '<input class="flightInp acType" data-fl="acType" placeholder="'+t.acPlace+'" value="'+esc(s.acType||"")+'" />'+
     '<input class="flightInp eta" data-fl="eta" placeholder="'+t.etaPlace+'" value="'+esc(s.eta||"")+'" />'+
     '</div>';
-  if (s.dnata) html += '<div class="warnBar">⚠️ '+t.warnDnata+'</div>';
+  if (s.dnata) html += '<div class="warnBarR">⚠️ '+t.warnDnataFlight+'</div>';
+  if (s.dnataTrailer) html += '<div class="warnBar">⚠️ '+t.warnDnata+'</div>';
   if (s.max4) html += '<div class="warnBar">⚠️ '+t.warnMax4+'</div>';
   if (Number(s.retirar)>0) html += '<div class="retirarBar">📤 '+s.retirar+' '+t.photoRetirar+'</div>';
   if (s.aviso) html += '<div class="salidaBar">↗ '+t.photoSalida+'</div>';
@@ -871,10 +892,10 @@ function screenStand(){
         '<span class="matRes" id="res-'+m+'">'+resInner(need, have, t)+'</span></div>'+
       kgRow+
       '<div class="ndRow">'+hayBox+necBox+'</div>'+
+      ((need-have)>0 ? (function(){ const st=depotStock(m); return st.total>0 ? '<div class="depHint">📦 '+t.depHave+': '+st.where.join(" · ")+'</div>' : ''; })() : '')+
       '<div class="progWrap"><div class="progFill" id="prog-'+m+'" style="width:'+pi.pct+'%;background:'+pi.col+'"></div></div>'+
       '</div>';
   });
-  html += '<div style="padding:8px 16px 24px"><button class="clearStandBtn" data-action="clear-stand" data-stand="'+id+'">🗑 '+t.clearStand+'</button></div>';
   return html;
 }
 
@@ -1227,11 +1248,24 @@ async function handlePhoto(dataUrl){
   }
 }
 
+const SWISSPORT = ["LX","WK","LH","OS","EW","BT","OU","LO","JU","A3","VY","AZ","AY","TP","KM","WY","KE","TK","IV"];
+function flightPrefix(flight){
+  const f = String(flight||"").toUpperCase().replace(/\s/g,"");
+  const m = f.match(/^([A-Z]{2,3}\d?|[A-Z]\d)/);
+  if (!m) return "";
+  // probar 3, luego 2 caracteres
+  const p3 = f.slice(0,3), p2 = f.slice(0,2);
+  if (SWISSPORT.indexOf(p3)>=0) return p3;
+  if (SWISSPORT.indexOf(p2)>=0) return p2;
+  return p2;
+}
 function airlineFlags(flight){
-  const f = String(flight||"").toUpperCase();
-  const isDL = f.startsWith("DL");
-  const isUA = f.startsWith("UA");
-  return { dnata: isDL, max4: isDL || isUA };
+  const f = String(flight||"").toUpperCase().replace(/\s/g,"");
+  const p3 = f.slice(0,3), p2 = f.slice(0,2);
+  const isSwissport = SWISSPORT.indexOf(p3)>=0 || SWISSPORT.indexOf(p2)>=0;
+  const isDL = p2==="DL";
+  const isUA = p2==="UA";
+  return { dnata: f && !isSwissport, dnataTrailer: isDL, max4: isDL || isUA };
 }
 function applyPhotoFlights(flights){
   flights.forEach(f => {
@@ -1247,6 +1281,7 @@ function applyPhotoFlights(flights){
       s.retirar = Number(f.empties)>0 ? Number(f.empties) : 0;
       const fl = airlineFlags(f.flight);
       s.dnata = fl.dnata ? 1 : 0;
+      s.dnataTrailer = fl.dnataTrailer ? 1 : 0;
       s.max4 = fl.max4 ? 1 : 0;
       s.flight = f.flight || "";
       s.acType = f.type || "";
@@ -1282,6 +1317,7 @@ function screenAgenda(){
     const fl = airlineFlags(f.flight);
     let warns = "";
     if (fl.dnata) warns += '<span class="pvWarn">⚠️ DNata</span>';
+    if (fl.dnataTrailer) warns += '<span class="pvWarn">⚠️ tráiler DNata</span>';
     if (fl.max4) warns += '<span class="pvWarn">⚠️ máx 4</span>';
     const mins = minsUntil(f.time);
     const urgent = (mins!=null && mins<=60);
@@ -1526,7 +1562,7 @@ document.addEventListener("input", function(e){
     const s = getStand(id);
     const k = el.dataset.fl;
     s[k] = el.value;
-    if (k==="flight"){ const fl = airlineFlags(el.value); s.dnata = fl.dnata?1:0; s.max4 = fl.max4?1:0; }
+    if (k==="flight"){ const fl = airlineFlags(el.value); s.dnata = fl.dnata?1:0; s.dnataTrailer = fl.dnataTrailer?1:0; s.max4 = fl.max4?1:0; }
     save();
     return;
   }
