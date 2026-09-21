@@ -181,8 +181,14 @@
   .topSub { font-size: 13px; color: #64748b; margin-top: 3px; }
 
   /* Stand grid */
-  .standGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px; }
-  .standCell { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 72px; justify-content: center; }
+  .standGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 20px; }
+  .standCell { background: #fff; border: 2px solid #e2e8f0; border-radius: 14px; padding: 12px 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 90px; justify-content: center; }
+  .standCell.cEmpty2 { border-color: #e2e8f0; }
+  .standCell.cMiss2 { border-color: #D64545; background: #fff5f5; }
+  .standCell.cDone2 { border-color: #1F9D57; background: #f0fdf4; }
+  .cellFlight { font-size: 11px; font-weight: 800; color: #475569; }
+  .cellNeed { font-size: 11px; font-weight: 800; color: #2563eb; letter-spacing: .2px; }
+  .cellChips2 { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 2px; }
   .standCell.on { border-color: #1e293b; border-width: 2px; }
   .standName { font-size: 17px; font-weight: 700; }
   .cellChips { display: flex; flex-direction: column; gap: 4px; width: 100%; margin-top: 8px; }
@@ -725,23 +731,28 @@ function screenArea(){
     const s = state.data[id] || emptyStand();
     const items = standItems(s, id);
     const touched = isTouched(s);
-    // necesito en chiquito (arriba)
     const shortMap = { wagen:"W", dolly:"D", trailer:"T", wageli:"Dg", post:"P" };
+    // estado del cuadro: rojo si falta, verde si completo, gris si sin tocar
+    let miss = false, some = false;
+    MAT_KEYS.forEach(m => { const n=matNeed(id,s,m), h=matHave(s,m); if (n>0||h>0){ some=true; if (h<n) miss=true; } });
+    const stateCls = !touched ? "cEmpty2" : (miss ? "cMiss2" : "cDone2");
+    // vuelo + hora
+    const flLine = (s.flight||s.eta) ? '<span class="cellFlight">'+(s.flight||"")+(s.eta?(" · "+s.eta):"")+'</span>' : '';
+    // necesito (azul)
     let needTxt = "";
-    MAT_KEYS.forEach(m => { const n = matNeed(id, s, m); if (n>0) needTxt += (needTxt?" · ":"") + n + shortMap[m]; });
+    MAT_KEYS.forEach(m => { const n = matNeed(id, s, m); if (n>0) needTxt += (needTxt?" ":"") + n + shortMap[m]; });
     const needLine = needTxt ? '<span class="cellNeed">'+needTxt+'</span>' : '';
+    // falta / hay (rojo / verde)
     let chips = "";
     if (items.length){
-      chips = '<span class="cellChips">';
-      items.forEach(it => {
-        chips += '<span class="cellChip '+(it.v<0?"neg":"pos")+'">'+signed(it.v)+' '+t.labels[it.k]+'</span>';
-      });
+      chips = '<span class="cellChips2">';
+      items.forEach(it => { chips += '<span class="cellChip '+(it.v<0?"neg":"pos")+'">'+signed(it.v)+' '+shortMap[it.k]+'</span>'; });
       chips += '</span>';
     } else if (touched){
       chips = '<span class="cellDone">✓</span>';
     }
-    html += '<button class="standCell '+(touched?"on":"")+'" data-action="open-stand" data-stand="'+id+'">'+
-      needLine+'<span class="standName tnum">'+id+'</span>'+chips+'</button>';
+    html += '<button class="standCell '+stateCls+'" data-action="open-stand" data-stand="'+id+'">'+
+      flLine+'<span class="standName tnum">'+id+'</span>'+needLine+chips+'</button>';
   });
   html += '</div>';
 
