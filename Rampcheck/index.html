@@ -140,6 +140,7 @@
   .mvSide { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .mvStand { font-size: 17px; font-weight: 800; padding: 4px 11px; border-radius: 8px; }
   .mvStand.green { background: #dcfce7; color: #166534; }
+  .mvStand.dep { background: #f5f3ff; color: #6d28d9; }
   .mvStand.red { background: #fee2e2; color: #991b1b; }
   .mvCap { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: .3px; }
   .mvArrow { font-size: 22px; color: #64748b; font-weight: 800; }
@@ -447,7 +448,7 @@ const T = {
     needOutside:"Falta traer de afuera", freeSurplus:"Sobra libre (se puede sacar)",
     planMore:"Hay de más — sacar de acá", planLack:"Falta — poner acá",
     planMoves:"Cómo nivelar", planTake:"Llevá", loadWord:"Cargá", inWord:"en", leaveWord:"dejá",
-    zoneBalance:"Balance de la zona", zoneLevel:"Cómo nivelar en la zona",
+    zoneBalance:"Balance de la zona", zoneLevel:"Cómo nivelar en la zona", depotTag:"depósito",
     faltaWord:"Falta", sobraWord:"Sobra", okWord:"OK", sobraTag:"sobra", faltaTag:"falta",
     stands:"stands", ok:"OK",
     weightTitle:"Peso a descargar", wagenNeeded:"Wagen necesarios",
@@ -487,7 +488,7 @@ const T = {
     needOutside:"Von aussen holen", freeSurplus:"Frei übrig (kann weg)",
     planMore:"Zu viel — hier wegnehmen", planLack:"Fehlt — hierhin bringen",
     planMoves:"So ausgleichen", planTake:"Bringen", loadWord:"Lade", inWord:"in", leaveWord:"lass",
-    zoneBalance:"Zonen-Bilanz", zoneLevel:"In der Zone ausgleichen",
+    zoneBalance:"Zonen-Bilanz", zoneLevel:"In der Zone ausgleichen", depotTag:"Ablage",
     faltaWord:"Fehlt", sobraWord:"Übrig", okWord:"OK", sobraTag:"übrig", faltaTag:"fehlt",
     stands:"Stands", ok:"OK",
     weightTitle:"Abzuladendes Gewicht", wagenNeeded:"Benötigte Wagen",
@@ -1199,7 +1200,8 @@ function planForMaterial(mat, standIds){
 
   const remainingDef = def.reduce((x,d) => x + Math.max(0,d.qty), 0);
   const remainingSup = sup.reduce((x,s) => x + Math.max(0,s.qty), 0);
-  return {moves, byDest, remainingDef, remainingSup, rawSup, rawDef};
+  const remainDef = def.filter(d => d.qty>0).map(d => ({id:d.id, qty:d.qty}));
+  return {moves, byDest, remainingDef, remainingSup, rawSup, rawDef, remainDef};
 }
 
 function bringTxt(sources){
@@ -1233,7 +1235,23 @@ function routesForMaterial(mat, standIds){
     const total = g.stops.reduce((x,s) => x+s.qty, 0);
     return { from:g.from, zone:g.zone, stops:g.stops, total, trips: Math.ceil(total/cap) };
   });
-  return { routes, remainingDef: p.remainingDef, remainingSup: p.remainingSup };
+
+  // Lo que queda faltando: traer desde los depósitos (cercanos primero)
+  const localStock = {};
+  DEPOTS.forEach(dp => { const d=state.data[dp.id]; localStock[dp.id] = Number(d&&d[mat]&&d[mat].have)||0; });
+  const depotMoves = [];
+  (p.remainDef||[]).forEach(d => {
+    let left = d.qty;
+    const areaId = AREA_OF_STAND[d.id] ? AREA_OF_STAND[d.id].id : "";
+    const nearIds = NEAR_DEPOTS[areaId] || [];
+    const ordered = DEPOTS.slice().sort((a,b)=>{ const an=nearIds.indexOf(a.id)>=0?nearIds.indexOf(a.id):99; const bn=nearIds.indexOf(b.id)>=0?nearIds.indexOf(b.id):99; return an-bn; });
+    ordered.forEach(dp=>{
+      if (left<=0) return;
+      if (localStock[dp.id]>0){ const take=Math.min(localStock[dp.id],left); depotMoves.push({depId:dp.id, from:dp.name, to:d.id, qty:take}); localStock[dp.id]-=take; left-=take; }
+    });
+  });
+  const depotUsed = depotMoves.reduce((x,m)=>x+m.qty,0);
+  return { routes, depotMoves, remainingDef: Math.max(0, p.remainingDef - depotUsed), remainingSup: p.remainingSup };
 }
 
 function routesHTML(rr, mat){
@@ -1268,6 +1286,17 @@ function routesHTML(rr, mat){
         '<div class="dropList">'+drops+'</div>'+
         '</div>';
     }
+  });
+  (rr.depotMoves||[]).forEach(mv => {
+    out += '<div class="mvRow">'+
+      '<div class="mvInfo" data-action="open-stand" data-stand="'+mv.to+'">'+
+        '<span class="mvSide"><span class="mvStand dep tnum">📦 '+mv.from+'</span><span class="mvCap">'+t.depotTag+'</span></span>'+
+        '<span class="mvArrow">→</span>'+
+        '<span class="mvSide"><span class="mvStand red tnum">'+mv.to+'</span><span class="mvCap">'+t.faltaTag+'</span></span>'+
+        '<span class="mvQty tnum">'+mv.qty+'</span>'+
+      '</div>'+
+      '<button class="okBtn" data-action="route-done" data-mat="'+mat+'" data-to="'+mv.to+'" data-qty="'+mv.qty+'" data-depfrom="'+mv.depId+'">OK</button>'+
+      '</div>';
   });
   if (rr.remainingDef>0) out += '<div class="planNote miss">'+t.needOutside+': '+rr.remainingDef+'</div>';
   return out;
@@ -1555,6 +1584,9 @@ document.addEventListener("click", function(e){
     const s = getStand(to);
     if (!s[mat]) s[mat] = (mat==="wagen" ? {have:0,need:0} : {need:0,have:0});
     s[mat].have = (Number(s[mat].have)||0) + qty;
+    // si vino de un depósito, descontar de su stock
+    const depfrom = el.dataset.depfrom;
+    if (depfrom){ const d = getDepot(depfrom); if (d[mat]) d[mat].have = Math.max(0, (Number(d[mat].have)||0) - qty); }
     save();
     const y = window.scrollY;
     render();
