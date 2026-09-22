@@ -853,7 +853,7 @@ function screenArea(){
     let movesBody = "";
     MAT_KEYS.forEach(m => {
       const rr = routesForMaterial(m, area.stands);
-      if (!rr.routes.length) return;
+      if (!rr.routes.length && !(rr.depotMoves||[]).length) return;
       movesBody += '<div class="planSub">'+t.labels[m]+'</div>'+routesHTML(rr, m);
     });
     if (movesBody) html += '<div class="block"><div class="blockTitle">'+t.zoneLevel+'</div>'+movesBody+'</div>';
@@ -1327,10 +1327,10 @@ function screenPlan(){
     }
     // Cómo nivelar (por rutas: cargá una vez y dejá en varias)
     const rr = routesForMaterial(mat);
-    if (rr.routes.length){
+    if (rr.routes.length || (rr.depotMoves||[]).length){
       body += '<div class="planSub">'+t.planMoves+'</div>'+routesHTML(rr, mat);
     }
-    if (p.remainingDef>0) body += '<div class="planNote miss">'+t.needOutside+': '+p.remainingDef+'</div>';
+    if (rr.remainingDef>0) body += '<div class="planNote miss">'+t.needOutside+': '+rr.remainingDef+'</div>';
     if (p.remainingSup>0) body += '<div class="planNote have">'+t.freeSurplus+': '+p.remainingSup+'</div>';
     body += '</div>';
   });
