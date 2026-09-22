@@ -89,6 +89,17 @@
   .flightInp::placeholder { color: #cbd5e1; font-weight: 600; }
   .agendaBtn { background: #0d9488; color: #fff; border: none; }
   .frachBanner { background: #fef2f2; color: #b91c1c; font-weight: 800; font-size: 14px; padding: 12px 16px; border-radius: 12px; margin: 12px 20px 0; border: 1.5px solid #fecaca; }
+  .frachBanner.frachNow { background: #D64545; color: #fff; border-color: #D64545; animation: frachPulse 1s infinite; }
+  @keyframes frachPulse { 0%{opacity:1} 50%{opacity:.72} 100%{opacity:1} }
+  .frachRows { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .frachRow2 { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; }
+  .frachRow2.soon { border-color: #f59e0b; background: #fffbeb; }
+  .frachRow2.now { border-color: #D64545; background: #fef2f2; }
+  .frachWhere { font-size: 15px; font-weight: 800; color: #1e293b; }
+  .frachCd { font-size: 13px; font-weight: 800; color: #b45309; margin-left: auto; }
+  .frachRow2.now .frachCd { color: #b91c1c; }
+  .cellFrach { font-size: 11px; font-weight: 800; color: #b45309; background: #fef3c7; padding: 2px 7px; border-radius: 6px; }
+  .standCell.cFrach { border-color: #f59e0b; }
   .frachBox { margin: 14px 20px 0; }
   .frachHead { display: flex; align-items: center; justify-content: space-between; }
   .frachTitle { font-size: 13px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .3px; }
@@ -409,8 +420,8 @@ const T = {
     warnDnata:"Tráiler DNata (especial)", warnMax4:"Máximo 4 en pista", warnDnataFlight:"Vuelo DNata (no Swissport)",
     flPlace:"Vuelo", acPlace:"Avión", etaPlace:"Hora", depHave:"hay en depósito",
     agendaBtn:"🕐 Agenda (por hora)", agendaTitle:"Agenda", agendaEmpty:"Sacá una foto para armar la agenda por hora.",
-    frachTitle:"Frach — avisos", frachAsk:"¿A qué hora el frach? (ej. 14:00)", frachAdd:"+ Hora de frach",
-    frachSoon:"Viene frach a las", frachClean:"sacá todo el material de la pista", lowUse:"Poco uso",
+    frachTitle:"Frach — programar", frachAsk:"Platz y hora del frach (ej: E53 14:30)", frachAdd:"+ Programar frach",
+    frachSoon:"Frach en", frachClean:"limpiar la pista", lowUse:"Poco uso",
     planBtn:"Plan · qué llevar y a dónde", planTitle:"Plan de traslados",
     planEmpty:"Nada que mover: todo está nivelado o sin datos.",
     needOutside:"Falta traer de afuera", freeSurplus:"Sobra libre (se puede sacar)",
@@ -448,8 +459,8 @@ const T = {
     warnDnata:"DNata-Trailer (speziell)", warnMax4:"Max. 4 auf dem Vorfeld", warnDnataFlight:"DNata-Flug (nicht Swissport)",
     flPlace:"Flug", acPlace:"Typ", etaPlace:"Zeit", depHave:"im Ablageplatz",
     agendaBtn:"🕐 Agenda (nach Uhrzeit)", agendaTitle:"Agenda", agendaEmpty:"Mach ein Foto für die Agenda nach Uhrzeit.",
-    frachTitle:"Frach — Hinweise", frachAsk:"Um wie viel Uhr der Frach? (z.B. 14:00)", frachAdd:"+ Frach-Uhrzeit",
-    frachSoon:"Frach kommt um", frachClean:"alles Material vom Vorfeld nehmen", lowUse:"Wenig genutzt",
+    frachTitle:"Frach — planen", frachAsk:"Platz und Zeit (z.B. E53 14:30)", frachAdd:"+ Frach planen",
+    frachSoon:"Frach in", frachClean:"Vorfeld räumen", lowUse:"Wenig genutzt",
     planBtn:"Plan · was wohin bringen", planTitle:"Verteilplan",
     planEmpty:"Nichts zu bewegen: alles ausgeglichen oder keine Daten.",
     needOutside:"Von aussen holen", freeSurplus:"Frei übrig (kann weg)",
@@ -504,13 +515,24 @@ function saveLang(){ try { localStorage.setItem(LS_LANG, state.lang); } catch(e)
 function saveDay(){ try { localStorage.setItem(LS_DAY, state.day); } catch(e){} }
 function saveFrach(){ try { localStorage.setItem(LS_FRACH, JSON.stringify(state.frachs||[])); } catch(e){} }
 function saveAgenda(){ try { localStorage.setItem(LS_AGENDA, JSON.stringify(state.agenda||[])); } catch(e){} }
-function nextFrach(){
-  let best = null;
-  (state.frachs||[]).forEach(hhmm => {
-    const m = minsUntil(hhmm);
-    if (m!=null && m>=-10 && m<=30){ if (best==null || m<best.m) best = {hhmm, m}; }
-  });
-  return best;
+// state.frachs = [{stand:"E53", time:"14:30"}]
+function frachList(){
+  return (state.frachs||[]).slice().sort((a,b)=>{ const ma=minsUntil(a.time), mb=minsUntil(b.time); if(ma==null)return 1; if(mb==null)return -1; return ma-mb; });
+}
+function frachForStand(id){
+  return (state.frachs||[]).filter(f => f.stand===id);
+}
+// frachs próximos (dentro de 45 min o ya pasó hace poco), para banner
+function frachSoonList(){
+  return frachList().filter(f => { const m=minsUntil(f.time); return m!=null && m>=-15 && m<=45; });
+}
+function frachCountTxt(time){
+  const m = minsUntil(time);
+  if (m==null) return "";
+  if (m<=0) return state.lang==="es" ? "¡AHORA!" : "JETZT!";
+  if (m<60) return state.lang==="es" ? ("en "+m+" min") : ("in "+m+" Min");
+  const h=Math.floor(m/60), mm=m%60;
+  return state.lang==="es" ? ("en "+h+"h "+mm+"m") : ("in "+h+"h "+mm+"m");
 }
 
 function todayStr(){
@@ -646,8 +668,6 @@ function screenHome(){
       '<button class="langBtn '+(state.lang==="de"?"on":"")+'" data-action="lang" data-lang="de">DE</button>'+
     '</div></div></div>';
   const isOld = state.day && state.day !== todayStr();
-  const fr = nextFrach();
-  if (fr) html += '<div class="frachBanner">⚠️ '+t.frachSoon+' '+fr.hhmm+' — '+t.frachClean+'</div>';
   html += '<div class="dayBar"><span class="dayText">'+t.dayLabel+': <b>'+fmtDay(state.day)+'</b></span>'+
     '<button class="dayBtn" data-action="newday">'+t.newDay+'</button></div>';
   if (isOld) html += '<div class="banner"><span>'+t.oldDayMsg+' ('+fmtDay(state.day)+')</span>'+
@@ -655,17 +675,6 @@ function screenHome(){
   html += '<div class="actions">'+
     '<button class="bigBtn photoBtn" data-action="photo"><span>'+t.photoBtn+'</span><span>→</span></button>'+
     '<button class="bigBtn agendaBtn" data-action="agenda"><span>'+t.agendaBtn+'</span><span>→</span></button></div>';
-  // Frach: anotar horas
-  html += '<div class="frachBox"><div class="frachHead"><span class="frachTitle">'+t.frachTitle+'</span>'+
-    '<button class="frachAdd" data-action="frach-add">'+t.frachAdd+'</button></div>';
-  if ((state.frachs||[]).length){
-    html += '<div class="frachList">';
-    state.frachs.slice().sort().forEach(hh => {
-      html += '<span class="frachChip">'+hh+' <button class="frachDel" data-action="frach-del" data-t="'+hh+'">✕</button></span>';
-    });
-    html += '</div>';
-  }
-  html += '</div>';
   html += '<div class="groups">';
   // Sectores principales
   SECTORS.forEach(sec => {
@@ -727,6 +736,29 @@ function screenArea(){
   const area = AREA_BY_ID[state.view.areaId];
   const secBack = state.view.secId ? "sector" : "home";
   let html = topbar(area.label, "", area.color, secBack, state.view.secId||"");
+
+  // Frach de esta zona (banner + programar)
+  const zoneStands = area.stands;
+  const zoneFrachs = frachList().filter(f => zoneStands.indexOf(f.stand)>=0);
+  zoneFrachs.forEach(f => {
+    const m = minsUntil(f.time); const urgent = (m!=null && m<=0);
+    if (m!=null && m<=45) html += '<div class="frachBanner'+(urgent?' frachNow':'')+'" style="margin:12px 16px 0">⏱ '+t.frachSoon+' '+f.stand+' ('+f.time+') — '+frachCountTxt(f.time)+' · '+t.frachClean+'</div>';
+  });
+  html += '<div class="frachBox" style="margin:12px 16px 0"><div class="frachHead"><span class="frachTitle">'+t.frachTitle+'</span>'+
+    '<button class="frachAdd" data-action="frach-add" data-area="'+area.id+'">'+t.frachAdd+'</button></div>';
+  if (zoneFrachs.length){
+    html += '<div class="frachRows">';
+    zoneFrachs.forEach(f => {
+      const m = minsUntil(f.time);
+      const cls = (m!=null && m<=0) ? "now" : (m!=null && m<=45 ? "soon" : "");
+      html += '<div class="frachRow2 '+cls+'"><span class="frachWhere tnum">'+f.stand+' · '+f.time+'</span>'+
+        '<span class="frachCd">'+frachCountTxt(f.time)+'</span>'+
+        '<button class="frachDel" data-action="frach-del" data-s="'+f.stand+'" data-t="'+f.time+'">✕</button></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
   html += '<div class="standGrid">';
   area.stands.forEach(id => {
     const s = state.data[id] || emptyStand();
@@ -752,8 +784,12 @@ function screenArea(){
     } else if (touched){
       chips = '<span class="cellDone">✓</span>';
     }
-    html += '<button class="standCell '+stateCls+'" data-action="open-stand" data-stand="'+id+'">'+
-      flLine+'<span class="standName tnum">'+id+'</span>'+needLine+chips+'</button>';
+    // frach programado en este platz
+    let frachBadge = "";
+    const fq = frachForStand(id);
+    if (fq.length){ const f0 = fq[0]; frachBadge = '<span class="cellFrach">⏱ '+frachCountTxt(f0.time)+'</span>'; }
+    html += '<button class="standCell '+stateCls+(fq.length?" cFrach":"")+'" data-action="open-stand" data-stand="'+id+'">'+
+      flLine+'<span class="standName tnum">'+id+'</span>'+frachBadge+needLine+chips+'</button>';
   });
   html += '</div>';
 
@@ -874,6 +910,11 @@ function screenStand(){
 
   // Avisos
   html += '<div id="standStatus">'+standStatusHTML(id, s, t)+'</div>';
+  frachForStand(id).forEach(f => {
+    const m = minsUntil(f.time);
+    const urgent = (m!=null && m<=0);
+    html += '<div class="frachBanner'+(urgent?' frachNow':'')+'" style="margin:6px 16px 0">⏱ '+t.frachSoon+' '+f.time+' — '+frachCountTxt(f.time)+' · '+t.frachClean+'</div>';
+  });
   if (s.dnata) html += '<div class="warnBarR">⚠️ '+t.warnDnataFlight+'</div>';
   if (s.dnataTrailer) html += '<div class="warnBar">⚠️ '+t.warnDnata+'</div>';
   if (s.max4) html += '<div class="warnBar">⚠️ '+t.warnMax4+'</div>';
@@ -1284,6 +1325,18 @@ function airlineFlags(flight){
   const isUA = p2==="UA";
   return { dnata: f && !isSwissport, dnataTrailer: isDL, max4: isDL || isUA };
 }
+// Tamaño de avión según el tipo (código del sistema): grande = larga distancia
+function planeSize(type){
+  const x = String(type||"").toUpperCase().replace(/\s/g,"");
+  if (!x) return "";
+  // grandes (widebody / larga distancia)
+  if (/^(33|34|35|74|76|77|78)/.test(x)) return "big";   // A330/340/350, B747/767/777/787
+  if (/380|388|748|359|351|333|343|332|346|764|763|772|77W|77L|789|788|781/.test(x)) return "big";
+  // chicos (narrowbody / regional)
+  if (/^(31|32|22|73|E1|E2|E9|CR|AT|DH|22[0-9])/.test(x)) return "small"; // A31x/32x, A220, B737, Embraer, CRJ...
+  if (/^\d/.test(x)) return "small";
+  return "";
+}
 function applyPhotoFlights(flights){
   flights.forEach(f => {
     if (!f.stand || !AREA_OF_STAND[f.stand]) return;
@@ -1312,8 +1365,10 @@ function screenAgenda(){
   const t = T[state.lang];
   const flights = state.agenda || [];
   let html = topbar(t.agendaTitle, "", "#0d9488", "home");
-  const fr = nextFrach();
-  if (fr) html += '<div class="frachBanner" style="margin:12px 16px 0">⚠️ '+t.frachSoon+' '+fr.hhmm+' — '+t.frachClean+'</div>';
+  frachSoonList().forEach(f => {
+    const m = minsUntil(f.time); const urgent = (m!=null && m<=0);
+    html += '<div class="frachBanner'+(urgent?' frachNow':'')+'" style="margin:12px 16px 0">⏱ '+t.frachSoon+' '+f.stand+' ('+f.time+') — '+frachCountTxt(f.time)+' · '+t.frachClean+'</div>';
+  });
   const arr = flights.filter(f => !f.isDeparture && f.stand && AREA_OF_STAND[f.stand]);
   const dep = flights.filter(f => f.isDeparture && f.stand && AREA_OF_STAND[f.stand]);
   arr.sort((a,b) => { const ma=minsUntil(a.time), mb=minsUntil(b.time); if (ma==null) return 1; if (mb==null) return -1; return ma-mb; });
@@ -1458,10 +1513,22 @@ document.addEventListener("click", function(e){
   if (action==="agenda"){ state.view = {name:"agenda"}; render(); return; }
   if (action==="frach-add"){
     const v = window.prompt(T[state.lang].frachAsk, "");
-    if (v && /^\d{1,2}:\d{2}$/.test(v.trim())){ state.frachs = state.frachs||[]; if (state.frachs.indexOf(v.trim())<0) state.frachs.push(v.trim()); saveFrach(); render(); }
+    if (v){
+      const m = v.trim().toUpperCase().match(/^([A-Z]{0,3}\d{1,3}[A-Z]?)\s+(\d{1,2}:\d{2})$/);
+      if (m){
+        state.frachs = state.frachs||[];
+        state.frachs.push({ stand:m[1], time:m[2] });
+        saveFrach(); render();
+      } else {
+        toast(state.lang==="es" ? 'Poné: platz y hora. Ej: E53 14:30' : 'Format: Platz Zeit. z.B. E53 14:30');
+      }
+    }
     return;
   }
-  if (action==="frach-del"){ state.frachs = (state.frachs||[]).filter(x => x!==el.dataset.t); saveFrach(); render(); return; }
+  if (action==="frach-del"){
+    state.frachs = (state.frachs||[]).filter(x => !(x.stand===el.dataset.s && x.time===el.dataset.t));
+    saveFrach(); render(); return;
+  }
   if (action==="balance"){ state.view = {name:"balance"}; render(); return; }
   if (action==="open-area"){ state.view = {name:"area", areaId: el.dataset.area, secId: el.dataset.sec||""}; render(); return; }
   if (action==="open-sector"){
@@ -1475,7 +1542,8 @@ document.addEventListener("click", function(e){
     const id = el.dataset.stand;
     if (!window.confirm(T[state.lang].clearStandAsk)) return;
     state.data[id] = emptyStand();
-    save();
+    state.frachs = (state.frachs||[]).filter(f => f.stand!==id);
+    save(); saveFrach();
     state.view = {name:"area", areaId: AREA_OF_STAND[id].id};
     render();
     toast("✓ "+id+" "+T[state.lang].clearedWord);
@@ -1800,6 +1868,16 @@ mountVoiceUI();
 mountPhotoUI();
 setupSwipeBack();
 render();
+
+// Auto-refresh de la cuenta regresiva del frach (cada 30s), sin molestar si estás escribiendo
+setInterval(function(){
+  if (!(state.frachs||[]).length) return;
+  const v = state.view.name;
+  if (v!=="home" && v!=="agenda" && v!=="stand") return;
+  const ae = document.activeElement;
+  if (ae && (ae.tagName==="INPUT" || ae.tagName==="TEXTAREA")) return;
+  render();
+}, 30000);
 </script>
 </body>
 </html>
