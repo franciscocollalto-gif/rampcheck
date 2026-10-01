@@ -48,6 +48,34 @@
   .bigBtn { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; }
   .mapBtn { background: #fff; color: #1e293b; border: 1.5px solid #1e293b; font-weight: 700; }
   .photoBtn { background: #1F9D57; color: #fff; border: none; }
+  .photoDnataBtn { background: #fff; color: #c2410c; border: 1.5px solid #fed7aa; font-weight: 700; }
+  .photoChangesBtn { background: #fff; color: #dc2626; border: 1.5px solid #fecaca; font-weight: 700; }
+  .chgIntro { margin: 12px 16px 2px; font-size: 13px; color: #991b1b; }
+  .chgCard { margin: 10px 16px 0; background: #fff; border: 1.5px solid #fecaca; border-radius: 14px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+  .chgHead { display: flex; align-items: center; gap: 8px; }
+  .chgFlight { font-weight: 800; font-size: 16px; color: #111; }
+  .chgType { font-size: 12px; color: #666; background: #f3f4f6; padding: 1px 6px; border-radius: 6px; }
+  .chgTime { margin-left: auto; font-weight: 700; color: #dc2626; }
+  .chgRoute { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-weight: 800; }
+  .chgRoute .mvArrow { color: #dc2626; font-size: 18px; }
+  .chgUnknown { font-weight: 800; color: #9ca3af; font-size: 18px; }
+  .chgSub { font-size: 13px; color: #374151; margin: 4px 0; }
+  .chgSub.dim { color: #6b7280; }
+  .chgMats { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+  .chgChip { font-size: 13px; font-weight: 700; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 3px 9px; border-radius: 8px; }
+  .chgBtn { width: 100%; margin-top: 4px; }
+  .chgBtn.ghost { background: #fff; color: #dc2626; border: 1.5px solid #fecaca; }
+  .dnataIncBar { margin: 6px 16px 0; background: #fff7ed; color: #c2410c; font-weight: 800; font-size: 14px; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #fed7aa; }
+  .cellDnata { font-size: 10px; font-weight: 800; color: #c2410c; background: #fff7ed; padding: 2px 6px; border-radius: 6px; }
+  .cellDnata.soon { background: #fb923c; color: #fff; }
+  .standCell.cDnata2 { border-color: #fb923c; }
+  .standCell.cDnataSoon { border-color: #ea580c; border-width: 2px; background: #fff7ed; animation: frachPulse 1.2s infinite; }
+  .cellChange { font-size: 10px; font-weight: 900; color: #fff; background: #D64545; padding: 2px 7px; border-radius: 6px; }
+  .standCell.cChange { border-color: #D64545; border-width: 2px; animation: frachPulse 1.2s infinite; }
+  .cellMoved { font-size: 10px; font-weight: 800; color: #64748b; background: #f1f5f9; padding: 2px 7px; border-radius: 6px; }
+  .standCell.cMoved { opacity: 0.55; }
+  .changeBar { margin: 6px 16px 0; background: #D64545; color: #fff; font-weight: 800; font-size: 14px; padding: 10px 14px; border-radius: 12px; }
+  .movedBar { margin: 6px 16px 0; background: #f1f5f9; color: #64748b; font-weight: 700; font-size: 13px; padding: 9px 14px; border-radius: 12px; }
   .completeBtn { background: #1F9D57; color: #fff; border: none; width: 100%; justify-content: center; margin-bottom: 4px; }
   .pvHead { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .pvStand { font-size: 20px; font-weight: 800; }
@@ -425,12 +453,23 @@ const LS_LANG = "rampcheck_lang_v1";
 const LS_DAY = "rampcheck_day_v1";
 const LS_FRACH = "rampcheck_frach_v1";
 const LS_AGENDA = "rampcheck_agenda_v1";
+const LS_DNATA = "rampcheck_dnata_v1";
 
 const T = {
   es: {
     kicker:"Control de pista", zoneQ:"¿En qué zona estás?",
     balanceBtn:"Ver balance general", mapBtn:"Ver mapa · dónde hay / falta",
     photoBtn:"📷 Leer pantalla del sistema", photoTitle:"Leído de la foto", photoLoad:"Cargar todo",
+    photoDnataBtn:"📷 Aviones DNata (otra foto)", dnataRegistered:"platz con avión DNata registrados", dnataIncoming:"Viene avión DNata",
+    changesDetected:"cambio(s) de platz — mirá los marcados", changedHere:"Cambió de platz · venía de", movedTo:"Este vuelo se movió a",
+    photoChangesBtn:"📷 Solo cambios (línea roja)",
+    changesTitle:"Cambios de platz", changesNone:"No se detectaron cambios (filas con línea roja).",
+    changesIntro:"Vuelos que cambiaron de platz. Te digo de qué platz venían y qué material mover.",
+    changesCarry:"Material ya preparado en {from} — llevalo:",
+    changesMoveBtn:"Moví todo a {to}", changesMovedOk:"Movido de {from} a {to}",
+    changesNothingPrepared:"Venía de {from} pero no había material preparado. Preparalo en {to}.",
+    changesUnknown:"Cambió a {to}. No encontré en qué platz venía (preparalo acá).",
+    changesOpenNew:"Abrir {to}",
     photoCancel:"Cancelar", photoEmpty:"No pude leer llegadas en la foto.",
     photoRetirar:"retirar contenedores vacíos", photoSalida:"sale · puede dejar material",
     photoNotReady:"La lectura por foto está lista pero falta conectar la clave (ver GUIA-FOTO).",
@@ -471,6 +510,16 @@ const T = {
     kicker:"Vorfeldkontrolle", zoneQ:"In welcher Zone bist du?",
     balanceBtn:"Gesamtbilanz anzeigen", mapBtn:"Karte · wo vorhanden / fehlt",
     photoBtn:"📷 Bildschirm lesen", photoTitle:"Aus dem Foto gelesen", photoLoad:"Alle laden",
+    photoDnataBtn:"📷 DNata-Flüge (extra Foto)", dnataRegistered:"Platz mit DNata-Flug erfasst", dnataIncoming:"DNata-Flug kommt",
+    changesDetected:"Platzwechsel — siehe markierte", changedHere:"Platzwechsel · kam von", movedTo:"Dieser Flug ging zu",
+    photoChangesBtn:"📷 Nur Änderungen (rote Linie)",
+    changesTitle:"Platzwechsel", changesNone:"Keine Änderungen erkannt (Zeilen mit roter Linie).",
+    changesIntro:"Flüge mit Platzwechsel. Ich zeige, von welchem Platz sie kamen und was zu bewegen ist.",
+    changesCarry:"Material schon vorbereitet in {from} — bring es:",
+    changesMoveBtn:"Alles nach {to}", changesMovedOk:"Von {from} nach {to} bewegt",
+    changesNothingPrepared:"Kam von {from}, aber kein Material vorbereitet. Bereite es in {to} vor.",
+    changesUnknown:"Wechsel nach {to}. Herkunftsplatz nicht gefunden (hier vorbereiten).",
+    changesOpenNew:"{to} öffnen",
     photoCancel:"Abbrechen", photoEmpty:"Keine Ankünfte im Foto erkannt.",
     photoRetirar:"leere Container wegnehmen", photoSalida:"Abflug · lässt evtl. Material",
     photoNotReady:"Die Foto-Lesung ist bereit, aber der Schlüssel fehlt (siehe GUIA-FOTO).",
@@ -520,7 +569,7 @@ function fromToTxt(from,to){ return state.lang==="es" ? "de "+from+" a "+to : "v
 /* ============================================================
    Estado + persistencia
    ============================================================ */
-let state = { data:{}, lang:"es", view:{name:"home"}, mapCat:"todo", day:"", frachs:[], agenda:[] };
+let state = { data:{}, lang:"es", view:{name:"home"}, mapCat:"todo", day:"", frachs:[], agenda:[], dnataFlights:[] };
 
 function load(){
   try { const d = localStorage.getItem(LS_DATA); if (d) state.data = JSON.parse(d); } catch(e){}
@@ -528,6 +577,7 @@ function load(){
   try { const dy = localStorage.getItem(LS_DAY); if (dy) state.day = dy; } catch(e){}
   try { const fr = localStorage.getItem(LS_FRACH); if (fr) state.frachs = JSON.parse(fr); } catch(e){}
   try { const ag = localStorage.getItem(LS_AGENDA); if (ag) state.agenda = JSON.parse(ag); } catch(e){}
+  try { const dn = localStorage.getItem(LS_DNATA); if (dn) state.dnataFlights = JSON.parse(dn); } catch(e){}
   if (!state.day){ state.day = todayStr(); saveDay(); }
 }
 function save(){
@@ -537,6 +587,17 @@ function saveLang(){ try { localStorage.setItem(LS_LANG, state.lang); } catch(e)
 function saveDay(){ try { localStorage.setItem(LS_DAY, state.day); } catch(e){} }
 function saveFrach(){ try { localStorage.setItem(LS_FRACH, JSON.stringify(state.frachs||[])); } catch(e){} }
 function saveAgenda(){ try { localStorage.setItem(LS_AGENDA, JSON.stringify(state.agenda||[])); } catch(e){} }
+function saveDnata(){ try { localStorage.setItem(LS_DNATA, JSON.stringify(state.dnataFlights||[])); } catch(e){} }
+// DNata del día: lista [{stand, flight, time, type}]
+function dnataForStand(id){
+  return (state.dnataFlights||[]).filter(d => d.stand===id)
+    .sort((a,b)=>{ const ma=minsUntil(a.time), mb=minsUntil(b.time); if(ma==null)return 1; if(mb==null)return -1; return ma-mb; });
+}
+function dnataNext(id){
+  // el próximo que todavía no pasó (o pasó hace <20 min)
+  const list = dnataForStand(id).filter(d => { const m=minsUntil(d.time); return m==null || m>=-20; });
+  return list.length ? list[0] : null;
+}
 // state.frachs = [{stand:"E53", time:"14:30"}]
 function frachList(){
   return (state.frachs||[]).slice().sort((a,b)=>{ const ma=minsUntil(a.time), mb=minsUntil(b.time); if(ma==null)return 1; if(mb==null)return -1; return ma-mb; });
@@ -570,8 +631,11 @@ function clearNewDay(){
   const t = T[state.lang];
   if (!window.confirm(t.clearConfirm)) return;
   state.data = {};
+  state.frachs = [];
+  state.dnataFlights = [];
+  state.agenda = [];
   state.day = todayStr();
-  save(); saveDay();
+  save(); saveDay(); saveFrach(); saveDnata(); saveAgenda();
   state.view = {name:"home"};
   render();
 }
@@ -713,6 +777,8 @@ function screenHome(){
     '<button class="bannerBtn" data-action="newday">'+t.startNewDay+'</button></div>';
   html += '<div class="actions">'+
     '<button class="bigBtn photoBtn" data-action="photo"><span>'+t.photoBtn+'</span><span>→</span></button>'+
+    '<button class="bigBtn photoDnataBtn" data-action="photo-dnata"><span>'+t.photoDnataBtn+'</span><span>→</span></button>'+
+    '<button class="bigBtn photoChangesBtn" data-action="photo-changes"><span>'+t.photoChangesBtn+'</span><span>→</span></button>'+
     '<button class="bigBtn agendaBtn" data-action="agenda"><span>'+t.agendaBtn+'</span><span>→</span></button></div>';
   html += '<div class="groups">';
   // Sectores principales
@@ -783,6 +849,13 @@ function screenArea(){
     const m = minsUntil(f.time); const urgent = (m!=null && m<=0);
     if (m!=null && m<=45) html += '<div class="frachBanner'+(urgent?' frachNow':'')+'" style="margin:12px 16px 0">⏱ '+t.frachSoon+' '+f.stand+' ('+f.time+') — '+frachCountTxt(f.time)+' · '+t.frachClean+'</div>';
   });
+  // DNata inminente en esta zona (≤30 min) → aviso arriba
+  zoneStands.forEach(id => {
+    const dn = dnataNext(id); if (!dn) return;
+    const m = minsUntil(dn.time); if (m==null || m>30) return;
+    const urgent = m<=0;
+    html += '<div class="dnataIncBar'+(urgent?" frachNow":"")+'" style="margin:12px 16px 0">🟧 '+t.dnataIncoming+' '+id+(dn.flight?(' · '+dn.flight):'')+' — '+frachCountTxt(dn.time)+'</div>';
+  });
   html += '<div class="frachBox" style="margin:12px 16px 0"><div class="frachHead"><span class="frachTitle">'+t.frachTitle+'</span>'+
     '<button class="frachAdd" data-action="frach-add" data-area="'+area.id+'">'+t.frachAdd+'</button></div>';
   if (zoneFrachs.length){
@@ -798,8 +871,22 @@ function screenArea(){
   }
   html += '</div>';
 
+  // Ordenar los cuadritos por hora de llegada (el primero que llega, primero)
+  const standTime = (id) => {
+    const s = state.data[id] || {};
+    const dn0 = dnataNext(id);
+    const hh = s.eta || (dn0 ? dn0.time : "") || "";
+    const m = minsUntil(hh);
+    return m==null ? 100000 : m;
+  };
+  const orderedStands = area.stands.slice().sort((a,b) => {
+    const ta=standTime(a), tb=standTime(b);
+    if (ta===tb) return area.stands.indexOf(a)-area.stands.indexOf(b);
+    return ta-tb;
+  });
+
   html += '<div class="standGrid">';
-  area.stands.forEach(id => {
+  orderedStands.forEach(id => {
     const s = state.data[id] || emptyStand();
     const items = standItems(s, id);
     const touched = isTouched(s);
@@ -829,8 +916,14 @@ function screenArea(){
     let frachBadge = "";
     const fq = frachForStand(id);
     if (fq.length){ const f0 = fq[0]; frachBadge = '<span class="cellFrach">⏱ '+frachCountTxt(f0.time)+'</span>'; }
-    html += '<button class="standCell '+stateCls+(fq.length?" cFrach":"")+'" data-action="open-stand" data-stand="'+id+'">'+
-      flLine+'<span class="standName tnum">'+id+'</span>'+frachBadge+needLine+chips+'</button>';
+    // badge DNata entrante (con cuenta regresiva)
+    const dnN = dnataNext(id);
+    const dnMin = dnN ? minsUntil(dnN.time) : null;
+    const dnSoon = (dnMin!=null && dnMin<=30);
+    const dnBadge = dnN ? '<span class="cellDnata'+(dnSoon?" soon":"")+'">🟧 DNata'+(dnMin!=null ? (' '+frachCountTxt(dnN.time)) : (dnN.time?(' '+dnN.time):''))+'</span>' : '';
+    const chBadge = s.changed ? '<span class="cellChange">⚠️ CAMBIO</span>' : (s.movedAway ? '<span class="cellMoved">↪ '+(s.movedTo||"")+'</span>' : '');
+    html += '<button class="standCell '+stateCls+(fq.length?" cFrach":"")+(dnN?" cDnata2":"")+(dnSoon?" cDnataSoon":"")+(s.changed?" cChange":"")+(s.movedAway?" cMoved":"")+'" data-action="open-stand" data-stand="'+id+'">'+
+      flLine+'<span class="standName tnum">'+id+'</span>'+chBadge+dnBadge+frachBadge+needLine+chips+'</button>';
   });
   html += '</div>';
 
@@ -974,6 +1067,12 @@ function screenStand(){
   if (s.max4) html += '<div class="warnBar">⚠️ '+t.warnMax4+'</div>';
   if (Number(s.retirar)>0) html += '<div class="retirarBar">📤 '+s.retirar+' '+t.photoRetirar+'</div>';
   if (s.aviso) html += '<div class="salidaBar">↗ '+t.photoSalida+'</div>';
+  dnataForStand(id).forEach(dn => {
+    const dm=minsUntil(dn.time);
+    html += '<div class="dnataIncBar'+(dm!=null&&dm<=0?" frachNow":"")+'">🟧 '+t.dnataIncoming+(dn.flight?(' · '+dn.flight):'')+(dn.time?(' · '+dn.time+(dm!=null?(' — '+frachCountTxt(dn.time)):'')):'')+'</div>';
+  });
+  if (s.changed) html += '<div class="changeBar">⚠️ '+t.changedHere+(s.changedFrom?(' '+s.changedFrom):'')+'</div>';
+  if (s.movedAway) html += '<div class="movedBar">↪ '+t.movedTo+(s.movedTo?(' '+s.movedTo):'')+'</div>';
 
   // Peso (calcula Necesito de Wagen)
   html += '<div class="block"><div class="blockTitle">'+t.weightTitle+'</div>'+
@@ -1267,7 +1366,7 @@ function routesHTML(rr, mat){
           '<span class="mvSide"><span class="mvStand red tnum">'+st.to+'</span><span class="mvCap">'+t.faltaTag+'</span></span>'+
           '<span class="mvQty tnum">'+st.qty+(rt.trips>1?'<span class="mvTrips">'+viajesTxt(rt.trips)+'</span>':'')+'</span>'+
         '</div>'+
-        '<button class="okBtn" data-action="route-done" data-mat="'+mat+'" data-to="'+st.to+'" data-qty="'+st.qty+'">OK</button>'+
+        '<button class="okBtn" data-action="route-done" data-mat="'+mat+'" data-to="'+st.to+'" data-qty="'+st.qty+'" data-from="'+rt.from+'">OK</button>'+
         '</div>';
     } else {
       let drops = "";
@@ -1276,7 +1375,7 @@ function routesHTML(rr, mat){
           '<div class="dropInfo" data-action="open-stand" data-stand="'+st.to+'">'+
             '<span class="dropArrow">→</span>'+t.leaveWord+' <b class="tnum">'+st.qty+'</b> '+t.inWord+' '+
             '<span class="mvStand red sm tnum">'+st.to+'</span></div>'+
-          '<button class="okBtn" data-action="route-done" data-mat="'+mat+'" data-to="'+st.to+'" data-qty="'+st.qty+'">OK</button>'+
+          '<button class="okBtn" data-action="route-done" data-mat="'+mat+'" data-to="'+st.to+'" data-qty="'+st.qty+'" data-from="'+rt.from+'">OK</button>'+
           '</div>';
       });
       out += '<div class="routeCard">'+
@@ -1371,10 +1470,39 @@ async function handlePhoto(dataUrl){
   toast("Leyendo la pantalla…");
   try {
     const resp = await fetch(PHOTO_URL, { method:"POST", headers:{"content-type":"application/json"},
-      body: JSON.stringify({ image: dataUrl, stands: ALL_STANDS }) });
+      body: JSON.stringify({ image: dataUrl, stands: ALL_STANDS, mode: state.photoMode||"normal" }) });
     if (!resp.ok) throw new Error("http "+resp.status);
     const j = await resp.json();
     if (!j || j.error || !Array.isArray(j.flights)) throw new Error("noai");
+    if (state.photoMode === "changes"){
+      const list = applyChangeFlights(j.flights);
+      state.photoMode = "normal";
+      if (!list.length){ state.view = { name:"home" }; render(); toast(t.changesNone); return; }
+      state.changesList = list;
+      state.view = { name:"changes" };
+      render();
+      return;
+    }
+    if (state.photoMode === "dnata"){
+      // Registrar aviones DNata en sus platz (no cargan material)
+      let n = 0;
+      if (!state.dnataFlights) state.dnataFlights = [];
+      j.flights.forEach(f => {
+        if (!f.stand || !AREA_OF_STAND[f.stand]) return;
+        if (f.isDeparture) return;
+        const entry = { stand:f.stand, flight:f.flight||"", time:f.time||"", type:f.type||"" };
+        const key = entry.stand+"|"+entry.flight+"|"+entry.time;
+        const idx = state.dnataFlights.findIndex(x => (x.stand+"|"+x.flight+"|"+x.time)===key);
+        if (idx>=0) state.dnataFlights[idx] = entry; else state.dnataFlights.push(entry);
+        n++;
+      });
+      saveDnata();
+      state.photoMode = "normal";
+      state.view = { name:"home" };
+      render();
+      toast(n>0 ? ("✓ "+n+" "+t.dnataRegistered) : t.photoEmpty);
+      return;
+    }
     if (!state.photoList) state.photoList = [];
     j.flights.forEach(f => {
       const key = (f.flight||"")+"|"+(f.stand||"");
@@ -1420,12 +1548,26 @@ function planeSize(type){
   return "";
 }
 function applyPhotoFlights(flights){
+  // mapa de vuelo→platz actual, para detectar cambios de platz
+  const prevFlightStand = {};
+  Object.keys(state.data).forEach(k => { const d=state.data[k]; if (d && d.flight) prevFlightStand[String(d.flight).toUpperCase()] = k; });
+  let changes = 0;
   flights.forEach(f => {
     if (!f.stand || !AREA_OF_STAND[f.stand]) return;
     const s = getStand(f.stand);
     if (f.isDeparture){
       s.aviso = 1;
     } else {
+      // ¿este vuelo estaba en otro platz? → cambio de platz
+      const fl0 = String(f.flight||"").toUpperCase();
+      if (fl0){
+        const oldId = prevFlightStand[fl0];
+        if (oldId && oldId !== f.stand){
+          s.changed = 1; s.changedFrom = oldId;
+          const os = state.data[oldId]; if (os){ os.movedAway = 1; os.movedTo = f.stand; }
+          changes++;
+        }
+      }
       if (Number(f.wagenKg)>0) s.weight = String(f.wagenKg);
       if (Number(f.postKg)>0) s.post.kg = String(f.postKg);
       if (Number(f.dolly)>0) s.dolly.need = Number(f.dolly);
@@ -1438,9 +1580,96 @@ function applyPhotoFlights(flights){
       s.flight = f.flight || "";
       s.acType = f.type || "";
       s.eta = f.time || "";
+      s.movedAway = 0; s.movedTo = "";
     }
   });
   save();
+  if (changes>0) setTimeout(()=>toast("⚠️ "+changes+" "+T[state.lang].changesDetected), 400);
+}
+
+// Cámara EXCLUSIVA de cambios: solo filas con línea roja.
+// Por cada vuelo, busca en qué platz estaba preparado (por número de vuelo)
+// y arma la lista de movimientos: de dónde sacar el material → al platz nuevo.
+function applyChangeFlights(flights){
+  // mapa vuelo → platz donde estaba
+  const prevFlightStand = {};
+  Object.keys(state.data).forEach(k => { const d=state.data[k]; if (d && d.flight) prevFlightStand[String(d.flight).toUpperCase()] = k; });
+  const list = [];
+  flights.forEach(f => {
+    if (!f.stand || !AREA_OF_STAND[f.stand]) return;
+    if (f.isDeparture) return;
+    const fl0 = String(f.flight||"").toUpperCase();
+    const newS = getStand(f.stand);
+    const oldId = fl0 ? prevFlightStand[fl0] : null;
+    if (oldId && oldId !== f.stand){
+      const oldS = state.data[oldId];
+      // el requerimiento del vuelo SE MUDA al platz nuevo
+      if (oldS.weight) newS.weight = oldS.weight;
+      if (oldS.post && oldS.post.kg) { if(!newS.post) newS.post={kg:"",have:0}; newS.post.kg = oldS.post.kg; }
+      ["dolly","trailer","wageli","post"].forEach(mk => {
+        if (oldS[mk] && Number(oldS[mk].need)>0){ if(!newS[mk]) newS[mk]={need:0,have:0}; newS[mk].need = Number(oldS[mk].need); }
+      });
+      const fl = airlineFlags(f.flight);
+      newS.dnata = fl.dnata?1:0; newS.dnataTrailer = fl.dnataTrailer?1:0; newS.max4 = fl.max4?1:0;
+      newS.flight = f.flight||""; newS.acType = f.type||oldS.acType||""; newS.eta = f.time||oldS.eta||"";
+      newS.changed = 1; newS.changedFrom = oldId;
+      // material YA PREPARADO en el platz viejo (lo que hay que mudar)
+      const prepared = {};
+      MAT_KEYS.forEach(mk => { const h = (oldS[mk] && Number(oldS[mk].have))||0; if (h>0) prepared[mk] = h; });
+      // el platz viejo ya no necesita nada (el avión se fue de ahí), pero conserva lo preparado como sobrante
+      ["dolly","trailer","wageli","post"].forEach(mk => { if (oldS[mk]) oldS[mk].need = 0; });
+      oldS.weight = ""; if (oldS.post) oldS.post.kg = "";
+      oldS.movedAway = 1; oldS.movedTo = f.stand; oldS.movedFlight = f.flight||"";
+      oldS.flight = ""; oldS.acType = ""; oldS.eta = "";
+      list.push({ flight:f.flight||"", type:f.type||"", time:f.time||"", from:oldId, to:f.stand, prepared, known:true });
+    } else {
+      // no sabíamos dónde estaba: igual marcamos el cambio en el platz nuevo
+      const fl = airlineFlags(f.flight);
+      newS.dnata = fl.dnata?1:0; newS.dnataTrailer = fl.dnataTrailer?1:0; newS.max4 = fl.max4?1:0;
+      newS.flight = f.flight||""; newS.acType = f.type||newS.acType||""; newS.eta = f.time||newS.eta||"";
+      newS.changed = 1; newS.changedFrom = "";
+      list.push({ flight:f.flight||"", type:f.type||"", time:f.time||"", from:null, to:f.stand, prepared:{}, known:false });
+    }
+  });
+  save();
+  return list;
+}
+
+function screenChanges(){
+  const t = T[state.lang];
+  const list = state.changesList || [];
+  let html = topbar(t.changesTitle, "", "#dc2626", "home");
+  if (!list.length){
+    html += '<div class="block"><div class="empty" style="padding:6px 0">'+t.changesNone+'</div></div>';
+    return html;
+  }
+  html += '<div class="chgIntro">'+t.changesIntro+'</div>';
+  list.forEach((c, i) => {
+    const prepKeys = Object.keys(c.prepared||{});
+    html += '<div class="chgCard">';
+    html += '<div class="chgHead"><span class="chgFlight tnum">✈ '+(c.flight||"—")+'</span>'+
+      (c.type?'<span class="chgType">'+c.type+'</span>':'')+
+      (c.time?'<span class="chgTime tnum">'+c.time+'</span>':'')+'</div>';
+    if (c.known){
+      html += '<div class="chgRoute"><span class="mvStand green tnum">'+c.from+'</span><span class="mvArrow">→</span><span class="mvStand red tnum">'+c.to+'</span></div>';
+      if (prepKeys.length){
+        html += '<div class="chgSub">'+t.changesCarry.replace("{from}", c.from)+'</div>';
+        html += '<div class="chgMats">';
+        prepKeys.forEach(mk => { html += '<span class="chgChip">'+(t.labels[mk]||mk)+' '+c.prepared[mk]+'</span>'; });
+        html += '</div>';
+        html += '<button class="okBtn chgBtn" data-action="change-move" data-idx="'+i+'">✓ '+t.changesMoveBtn.replace("{to}", c.to)+'</button>';
+      } else {
+        html += '<div class="chgSub dim">'+t.changesNothingPrepared.replace("{from}", c.from).replace("{to}", c.to)+'</div>';
+        html += '<button class="okBtn chgBtn ghost" data-action="open-stand" data-stand="'+c.to+'">'+t.changesOpenNew.replace("{to}", c.to)+'</button>';
+      }
+    } else {
+      html += '<div class="chgRoute"><span class="chgUnknown">? </span><span class="mvArrow">→</span><span class="mvStand red tnum">'+c.to+'</span></div>';
+      html += '<div class="chgSub dim">'+t.changesUnknown.replace("{to}", c.to)+'</div>';
+      html += '<button class="okBtn chgBtn ghost" data-action="open-stand" data-stand="'+c.to+'">'+t.changesOpenNew.replace("{to}", c.to)+'</button>';
+    }
+    html += '</div>';
+  });
+  return html;
 }
 
 function screenAgenda(){
@@ -1558,6 +1787,7 @@ function render(){
     case "map": html = screenMap(); break;
     case "plan": html = screenPlan(); break;
     case "photo": html = screenPhoto(); break;
+    case "changes": html = screenChanges(); break;
     case "agenda": html = screenAgenda(); break;
   }
   frame.innerHTML = html;
@@ -1587,6 +1817,17 @@ document.addEventListener("click", function(e){
     // si vino de un depósito, descontar de su stock
     const depfrom = el.dataset.depfrom;
     if (depfrom){ const d = getDepot(depfrom); if (d[mat]) d[mat].have = Math.max(0, (Number(d[mat].have)||0) - qty); }
+    // si vino de otro platz, RESTAR de ese platz de origen
+    const fromStand = el.dataset.from;
+    if (fromStand && AREA_OF_STAND[fromStand]){
+      const fs = getStand(fromStand);
+      if (fs[mat]) fs[mat].have = Math.max(0, (Number(fs[mat].have)||0) - qty);
+      // si este platz ya quedó sin material y sin necesidad, limpiar marca de "movido"
+      if (fs.movedAway){
+        const stillHas = MAT_KEYS.some(mk => fs[mk] && (Number(fs[mk].have)||0) > 0);
+        if (!stillHas){ fs.movedAway = 0; fs.movedTo = ""; fs.movedFlight = ""; }
+      }
+    }
     save();
     const y = window.scrollY;
     render();
@@ -1594,7 +1835,31 @@ document.addEventListener("click", function(e){
     toast("✓ +"+qty+" "+(T[state.lang].labels[mat]||"")+" en "+to);
     return;
   }
-  if (action==="photo"){ state.photoList = []; const el2 = document.getElementById("photoInput"); if (el2) el2.click(); return; }
+  if (action==="photo"){ state.photoMode = "normal"; state.photoList = []; const el2 = document.getElementById("photoInput"); if (el2) el2.click(); return; }
+  if (action==="photo-dnata"){ state.photoMode = "dnata"; const eld = document.getElementById("photoInput"); if (eld) eld.click(); return; }
+  if (action==="photo-changes"){ state.photoMode = "changes"; const elc = document.getElementById("photoInput"); if (elc) elc.click(); return; }
+  if (action==="change-move"){
+    const idx = parseInt(el.dataset.idx,10);
+    const c = (state.changesList||[])[idx];
+    if (!c || !c.known){ return; }
+    const fs = state.data[c.from]; const ts = getStand(c.to);
+    let moved = 0;
+    Object.keys(c.prepared||{}).forEach(mk => {
+      const q = c.prepared[mk]||0; if (q<=0) return;
+      if (!ts[mk]) ts[mk] = {need:0,have:0};
+      ts[mk].have = (Number(ts[mk].have)||0) + q;
+      if (fs && fs[mk]) fs[mk].have = Math.max(0, (Number(fs[mk].have)||0) - q);
+      moved += q;
+    });
+    if (fs){ fs.movedAway = 0; fs.movedTo = ""; fs.movedFlight = ""; }
+    // sacar este cambio de la lista
+    state.changesList.splice(idx,1);
+    save();
+    if (!(state.changesList||[]).length){ state.view = {name:"home"}; }
+    render();
+    toast("✓ "+T[state.lang].changesMovedOk.replace("{from}", c.from).replace("{to}", c.to));
+    return;
+  }
   if (action==="photo-more"){ const el3 = document.getElementById("photoInput"); if (el3) el3.click(); return; }
   if (action==="photo-load"){ applyPhotoFlights(state.photoList||[]); state.agenda = (state.photoList||[]).slice(); saveAgenda(); state.photoList=null; state.view={name:"home"}; render(); toast("✓ Cargado"); return; }
   if (action==="agenda"){ state.view = {name:"agenda"}; render(); return; }
@@ -1956,11 +2221,13 @@ mountPhotoUI();
 setupSwipeBack();
 render();
 
-// Auto-refresh de la cuenta regresiva del frach (cada 30s), sin molestar si estás escribiendo
+// Auto-refresh de las cuentas regresivas (frach y DNata) cada 30s, sin molestar si estás escribiendo
 setInterval(function(){
-  if (!(state.frachs||[]).length) return;
+  const hasFrach = (state.frachs||[]).length>0;
+  const hasDnata = (state.dnataFlights||[]).length>0;
+  if (!hasFrach && !hasDnata) return;
   const v = state.view.name;
-  if (v!=="home" && v!=="agenda" && v!=="stand") return;
+  if (v!=="home" && v!=="agenda" && v!=="stand" && v!=="area") return;
   const ae = document.activeElement;
   if (ae && (ae.tagName==="INPUT" || ae.tagName==="TEXTAREA")) return;
   render();
