@@ -10,6 +10,7 @@ export default async (req) => {
   try { body = await req.json(); } catch { /* ignore */ }
   const image = String(body.image || "");
   const stands = Array.isArray(body.stands) ? body.stands.slice(0, 400) : [];
+  const mode = String(body.mode || "normal");
 
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return cors(json({ error: "no_key" }, 500));
@@ -21,7 +22,25 @@ export default async (req) => {
   const mediaType = m[1];
   const b64 = m[2];
 
-  const system = [
+  const systemChanges = [
+    "Sos un asistente que lee una captura de la pantalla del sistema de un aeropuerto (lista de vuelos) y devuelve JSON.",
+    "",
+    "IMPORTANTE: En esta captura SOLO te interesan las filas que tienen una LÍNEA o MARCA ROJA antes/al lado del vuelo. Esas filas son CAMBIOS de platz.",
+    "Ignorá por completo todas las demás filas (las que no tienen marca roja).",
+    "De cada fila con marca roja leé: el número de vuelo, el PLATZ (ej E19, A23), la hora y el tipo de avión.",
+    "",
+    "Devolvé SOLO un JSON válido, sin texto extra:",
+    '{ "flights": [ { "stand":"E19", "flight":"LX155", "type":"333", "time":"07:30", "isDeparture":false } ] }',
+    "",
+    "Reglas:",
+    "- Incluí SOLO las filas con marca/línea roja. Si no hay ninguna, devolvé { \"flights\": [] }.",
+    "- stand = código del platz tal cual (mayúsculas).",
+    '- time = hora en formato "HH:MM". Si no se lee, "".',
+    "- isDeparture = true si la fila es AZUL (salida), false si es VERDE (llegada).",
+    stands.length ? ("Platz válidos (usá el más parecido si hay duda): " + stands.join(", ")) : ""
+  ].join("\n");
+
+  const systemNormal = [
     "Sos un asistente que lee una captura de la pantalla del sistema de un aeropuerto (lista de vuelos) y devuelve JSON.",
     "",
     "Cada fila es un vuelo. Filas VERDES = llegadas (arrivals). Filas AZULES = salidas (departures).",
@@ -42,6 +61,11 @@ export default async (req) => {
     stands.length ? ("Platz válidos (usá el más parecido si hay duda): " + stands.join(", ")) : ""
   ].join("\n");
 
+  const system = mode === "changes" ? systemChanges : systemNormal;
+  const userText = mode === "changes"
+    ? "Mirá SOLO las filas con marca/línea roja (cambios) y devolvé el JSON. Si no hay ninguna, devolvé flights vacío."
+    : "Leé todas las filas de esta pantalla y devolvé el JSON.";
+
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -58,7 +82,7 @@ export default async (req) => {
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: mediaType, data: b64 } },
-            { type: "text", text: "Leé todas las filas de esta pantalla y devolvé el JSON." }
+            { type: "text", text: userText }
           ]
         }]
       })
