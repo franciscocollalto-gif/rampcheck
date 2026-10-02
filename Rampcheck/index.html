@@ -234,6 +234,29 @@
   .standCell.cEmpty2 { border-color: #e2e8f0; }
   .standCell.cMiss2 { border-color: #D64545; background: #fff5f5; }
   .standCell.cDone2 { border-color: #1F9D57; background: #f0fdf4; }
+  .standCell.cReady2 { border-color: #15803d; background: #dcfce7; box-shadow: inset 0 0 0 2px #86efac; }
+  .cellEta { font-size: 11px; font-weight: 800; color: #475569; background: #f1f5f9; padding: 1px 7px; border-radius: 7px; }
+  .cellEta.soon { color: #b45309; background: #fef3c7; }
+  .cellEta.now { color: #fff; background: #dc2626; animation: pulseSoft 1.4s infinite; }
+  .cellReady { font-size: 10px; font-weight: 900; color: #166534; background: #bbf7d0; padding: 2px 8px; border-radius: 6px; }
+  .cellMore { font-size: 10px; font-weight: 800; color: #7c3aed; background: #f3e8ff; padding: 2px 7px; border-radius: 6px; }
+  @keyframes pulseSoft { 0%,100%{opacity:1} 50%{opacity:.55} }
+  .standCd { margin: 8px 16px 0; font-size: 15px; font-weight: 800; color: #475569; background: #f1f5f9; padding: 8px 14px; border-radius: 12px; }
+  .standCd.soon { color: #b45309; background: #fef3c7; }
+  .standCd.now { color: #fff; background: #dc2626; }
+  .prepRow { padding: 10px 16px 0; }
+  .prepBtn { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #15803d; background: #fff; color: #15803d; font-size: 16px; font-weight: 800; cursor: pointer; }
+  .prepBtn.on { background: #15803d; color: #fff; }
+  .dayList { display: flex; flex-direction: column; gap: 6px; }
+  .dayRow { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; }
+  .dayRow.cur { border-color: #2563eb; background: #eff6ff; }
+  .dayTime { font-weight: 800; font-size: 14px; color: #1e293b; min-width: 46px; }
+  .dayFl { flex: 1; font-size: 13px; font-weight: 700; color: #334155; }
+  .dayTag { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; }
+  .dayTag.pending { color: #b45309; background: #fef3c7; }
+  .dayTag.done { color: #166534; background: #bbf7d0; }
+  .dayTag.cleaned { color: #64748b; background: #e2e8f0; }
+  .dayLoad { font-size: 12px; font-weight: 800; color: #2563eb; background: #dbeafe; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
   .cellFlight { font-size: 11px; font-weight: 800; color: #475569; }
   .cellNeed { font-size: 11px; font-weight: 800; color: #2563eb; letter-spacing: .2px; }
   .cellChips2 { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 2px; }
@@ -454,6 +477,7 @@ const LS_DAY = "rampcheck_day_v1";
 const LS_FRACH = "rampcheck_frach_v1";
 const LS_AGENDA = "rampcheck_agenda_v1";
 const LS_DNATA = "rampcheck_dnata_v1";
+const LS_STATUS = "rampcheck_fstatus_v1";
 
 const T = {
   es: {
@@ -470,6 +494,10 @@ const T = {
     changesNothingPrepared:"Venía de {from} pero no había material preparado. Preparalo en {to}.",
     changesUnknown:"Cambió a {to}. No encontré en qué platz venía (preparalo acá).",
     changesOpenNew:"Abrir {to}",
+    preparedShort:"LISTO", arrivesIn:"Llega", markPrepared:"Marcar preparado", preparedOn:"PREPARADO — tocá para deshacer",
+    markedPrepared:"Marcado como preparado", markedUndone:"Desmarcado",
+    todayHere:"Vuelos hoy en este platz", stCleaned:"Limpio", stDone:"Listo", stPending:"Pendiente",
+    loadThis:"Cargar este", loadedWord:"cargado", cleanAndNextAsk:"¿Limpiar este y pasar al siguiente avión ({fl} {t})?",
     photoCancel:"Cancelar", photoEmpty:"No pude leer llegadas en la foto.",
     photoRetirar:"retirar contenedores vacíos", photoSalida:"sale · puede dejar material",
     photoNotReady:"La lectura por foto está lista pero falta conectar la clave (ver GUIA-FOTO).",
@@ -520,6 +548,10 @@ const T = {
     changesNothingPrepared:"Kam von {from}, aber kein Material vorbereitet. Bereite es in {to} vor.",
     changesUnknown:"Wechsel nach {to}. Herkunftsplatz nicht gefunden (hier vorbereiten).",
     changesOpenNew:"{to} öffnen",
+    preparedShort:"FERTIG", arrivesIn:"Ankunft", markPrepared:"Als vorbereitet markieren", preparedOn:"VORBEREITET — zum Rückgängig tippen",
+    markedPrepared:"Als vorbereitet markiert", markedUndone:"Zurückgesetzt",
+    todayHere:"Flüge heute an diesem Platz", stCleaned:"Sauber", stDone:"Fertig", stPending:"Offen",
+    loadThis:"Diesen laden", loadedWord:"geladen", cleanAndNextAsk:"Diesen reinigen und zum nächsten Flug wechseln ({fl} {t})?",
     photoCancel:"Abbrechen", photoEmpty:"Keine Ankünfte im Foto erkannt.",
     photoRetirar:"leere Container wegnehmen", photoSalida:"Abflug · lässt evtl. Material",
     photoNotReady:"Die Foto-Lesung ist bereit, aber der Schlüssel fehlt (siehe GUIA-FOTO).",
@@ -569,7 +601,7 @@ function fromToTxt(from,to){ return state.lang==="es" ? "de "+from+" a "+to : "v
 /* ============================================================
    Estado + persistencia
    ============================================================ */
-let state = { data:{}, lang:"es", view:{name:"home"}, mapCat:"todo", day:"", frachs:[], agenda:[], dnataFlights:[] };
+let state = { data:{}, lang:"es", view:{name:"home"}, mapCat:"todo", day:"", frachs:[], agenda:[], dnataFlights:[], fstatus:{} };
 
 function load(){
   try { const d = localStorage.getItem(LS_DATA); if (d) state.data = JSON.parse(d); } catch(e){}
@@ -578,6 +610,8 @@ function load(){
   try { const fr = localStorage.getItem(LS_FRACH); if (fr) state.frachs = JSON.parse(fr); } catch(e){}
   try { const ag = localStorage.getItem(LS_AGENDA); if (ag) state.agenda = JSON.parse(ag); } catch(e){}
   try { const dn = localStorage.getItem(LS_DNATA); if (dn) state.dnataFlights = JSON.parse(dn); } catch(e){}
+  try { const st = localStorage.getItem(LS_STATUS); if (st) state.fstatus = JSON.parse(st); } catch(e){}
+  if (!state.fstatus) state.fstatus = {};
   if (!state.day){ state.day = todayStr(); saveDay(); }
 }
 function save(){
@@ -588,6 +622,41 @@ function saveDay(){ try { localStorage.setItem(LS_DAY, state.day); } catch(e){} 
 function saveFrach(){ try { localStorage.setItem(LS_FRACH, JSON.stringify(state.frachs||[])); } catch(e){} }
 function saveAgenda(){ try { localStorage.setItem(LS_AGENDA, JSON.stringify(state.agenda||[])); } catch(e){} }
 function saveDnata(){ try { localStorage.setItem(LS_DNATA, JSON.stringify(state.dnataFlights||[])); } catch(e){} }
+function saveStatus(){ try { localStorage.setItem(LS_STATUS, JSON.stringify(state.fstatus||{})); } catch(e){} }
+
+// ===== Estado por VUELO (resuelve: "¿ya lo preparé?" + platz que se repite) =====
+// hora de reloj en minutos (0..1439), para ordenar la cola del día de un platz
+function clockMin(hhmm){ if(!hhmm||!/^\d{1,2}:\d{2}$/.test(hhmm)) return 99999; const p=hhmm.split(":"); return parseInt(p[0],10)*60+parseInt(p[1],10); }
+// clave única de un vuelo (número + hora + platz)
+function flightKey(flight, time, stand){ return String(flight||"").toUpperCase().replace(/\s/g,"")+"|"+(time||"")+"|"+(stand||""); }
+function fkeyOf(f){ return flightKey(f.flight, f.time, f.stand); }
+// Estado por vuelo = { done, cleaned } independientes (preparado NO se pierde al limpiar)
+function fstat(key){
+  const v = (state.fstatus||{})[key];
+  if (!v) return { done:false, cleaned:false };
+  if (typeof v === "string") return { done: v==="done", cleaned: v==="cleaned" }; // compat viejo
+  return { done:!!v.done, cleaned:!!v.cleaned };
+}
+function isDone(key){ return fstat(key).done; }
+function isCleaned(key){ return fstat(key).cleaned; }
+function setFlag(key, flag, val){
+  if (!key) return;
+  if (!state.fstatus) state.fstatus = {};
+  const cur = fstat(key);
+  cur[flag] = !!val;
+  if (!cur.done && !cur.cleaned) delete state.fstatus[key];
+  else state.fstatus[key] = { done:cur.done, cleaned:cur.cleaned };
+  saveStatus();
+}
+// todas las LLEGADAS de hoy para un platz (de la agenda), ordenadas por hora
+function standArrivalsToday(id){
+  return (state.agenda||[]).filter(f => !f.isDeparture && f.stand===id && !airlineFlags(f.flight).dnata)
+    .slice().sort((a,b)=> clockMin(a.time)-clockMin(b.time));
+}
+// llegadas que todavía NO limpiaste (pendientes o preparadas)
+function standPendingToday(id){
+  return standArrivalsToday(id).filter(f => !isCleaned(fkeyOf(f)));
+}
 // DNata del día: lista [{stand, flight, time, type}]
 function dnataForStand(id){
   return (state.dnataFlights||[]).filter(d => d.stand===id)
@@ -634,8 +703,9 @@ function clearNewDay(){
   state.frachs = [];
   state.dnataFlights = [];
   state.agenda = [];
+  state.fstatus = {};
   state.day = todayStr();
-  save(); saveDay(); saveFrach(); saveDnata(); saveAgenda();
+  save(); saveDay(); saveFrach(); saveDnata(); saveAgenda(); saveStatus();
   state.view = {name:"home"};
   render();
 }
@@ -894,11 +964,25 @@ function screenArea(){
     // estado del cuadro: rojo si falta, verde si completo, gris si sin tocar
     let miss = false, some = false;
     MAT_KEYS.forEach(m => { const n=matNeed(id,s,m), h=matHave(s,m); if (n>0||h>0){ some=true; if (h<n) miss=true; } });
-    const stateCls = !touched ? "cEmpty2" : (miss ? "cMiss2" : "cDone2");
+    // ¿este vuelo ya lo preparé? (marca persistente por número de vuelo)
+    const done = s.fkey ? isDone(s.fkey) : false;
+    const stateCls = done ? "cReady2" : (!touched ? "cEmpty2" : (miss ? "cMiss2" : "cDone2"));
     // vuelo + hora
     const cpsz = planeSize(s.acType);
     const bigDot = cpsz==="big" ? '🛬 ' : '';
     const flLine = (s.flight||s.eta||cpsz) ? '<span class="cellFlight'+(cpsz==="big"?" big":"")+'">'+bigDot+(s.flight||"")+(s.acType?(" "+s.acType):"")+(s.eta?(" · "+s.eta):"")+'</span>' : '';
+    // cuenta regresiva de llegada (todos los aviones)
+    const etaMin = minsUntil(s.eta);
+    let etaBadge = "";
+    if (s.eta && !s.aviso){
+      const cdCls = etaMin==null ? "" : (etaMin<=0 ? " now" : (etaMin<=30 ? " soon" : ""));
+      etaBadge = '<span class="cellEta'+cdCls+'">⏱ '+frachCountTxt(s.eta)+'</span>';
+    }
+    // ¿hay más vuelos hoy en este platz? (platz que se repite)
+    const pend = standPendingToday(id);
+    const moreN = Math.max(0, pend.length - 1);
+    const moreBadge = moreN>0 ? '<span class="cellMore">+'+moreN+' hoy</span>' : '';
+    const readyBadge = done ? '<span class="cellReady">✓ '+t.preparedShort+'</span>' : '';
     // necesito (azul)
     let needTxt = "";
     MAT_KEYS.forEach(m => { const n = matNeed(id, s, m); if (n>0) needTxt += (needTxt?" ":"") + n + shortMap[m]; });
@@ -923,7 +1007,7 @@ function screenArea(){
     const dnBadge = dnN ? '<span class="cellDnata'+(dnSoon?" soon":"")+'">🟧 DNata'+(dnMin!=null ? (' '+frachCountTxt(dnN.time)) : (dnN.time?(' '+dnN.time):''))+'</span>' : '';
     const chBadge = s.changed ? '<span class="cellChange">⚠️ CAMBIO</span>' : (s.movedAway ? '<span class="cellMoved">↪ '+(s.movedTo||"")+'</span>' : '');
     html += '<button class="standCell '+stateCls+(fq.length?" cFrach":"")+(dnN?" cDnata2":"")+(dnSoon?" cDnataSoon":"")+(s.changed?" cChange":"")+(s.movedAway?" cMoved":"")+'" data-action="open-stand" data-stand="'+id+'">'+
-      flLine+'<span class="standName tnum">'+id+'</span>'+chBadge+dnBadge+frachBadge+needLine+chips+'</button>';
+      flLine+etaBadge+'<span class="standName tnum">'+id+'</span>'+readyBadge+chBadge+dnBadge+frachBadge+moreBadge+needLine+chips+'</button>';
   });
   html += '</div>';
 
@@ -1051,6 +1135,45 @@ function screenStand(){
     '<input class="flightInp acType" data-fl="acType" placeholder="'+t.acPlace+'" value="'+esc(s.acType||"")+'" />'+
     '<input class="flightInp eta" data-fl="eta" placeholder="'+t.etaPlace+'" value="'+esc(s.eta||"")+'" />'+
     '</div>';
+
+  // Cuenta regresiva de llegada
+  if (s.eta && !s.aviso){
+    const em = minsUntil(s.eta);
+    const cdCls = em==null ? "" : (em<=0 ? " now" : (em<=30 ? " soon" : ""));
+    html += '<div class="standCd'+cdCls+'">⏱ '+t.arrivesIn+' '+frachCountTxt(s.eta)+'</div>';
+  }
+
+  // Botón "ya lo preparé" (marca persistente por vuelo) + limpiar/siguiente
+  const curKey = s.fkey || flightKey(s.flight, s.eta, id);
+  const curDone = isDone(curKey);
+  html += '<div class="prepRow">'+
+    '<button class="prepBtn'+(curDone?' on':'')+'" data-action="toggle-done" data-stand="'+id+'" data-key="'+esc(curKey)+'">'+
+      (curDone ? ('✓ '+t.preparedOn) : ('○ '+t.markPrepared))+'</button>'+
+    '</div>';
+
+  // Otros vuelos de HOY en este mismo platz (el platz se repite)
+  const todays = standArrivalsToday(id);
+  if (todays.length > 1){
+    html += '<div class="block"><div class="blockTitle">'+t.todayHere+' ('+todays.length+')</div><div class="dayList">';
+    todays.forEach(f => {
+      const k = fkeyOf(f);
+      const st = fstat(k);
+      const isCur = (k===curKey) || (f.stand===id && f.time===s.eta && String(f.flight||"").toUpperCase()===String(s.flight||"").toUpperCase());
+      // preparado y limpio son independientes: se pueden ver los dos
+      let tag, tagCls;
+      if (st.done && st.cleaned){ tag = '✓ '+t.stDone+' · 🧹 '+t.stCleaned; tagCls = "done"; }
+      else if (st.cleaned){ tag = '🧹 '+t.stCleaned; tagCls = "cleaned"; }
+      else if (st.done){ tag = '✓ '+t.stDone; tagCls = "done"; }
+      else { tag = '⏳ '+t.stPending; tagCls = "pending"; }
+      html += '<div class="dayRow'+(isCur?' cur':'')+'">'+
+        '<span class="dayTime tnum">'+(f.time||'--:--')+'</span>'+
+        '<span class="dayFl">'+(f.flight||'—')+(f.type?(' · '+f.type):'')+'</span>'+
+        '<span class="dayTag '+tagCls+'">'+tag+'</span>'+
+        (isCur ? '' : '<button class="dayLoad" data-action="load-flight" data-stand="'+id+'" data-key="'+esc(k)+'">'+t.loadThis+'</button>')+
+        '</div>';
+    });
+    html += '</div></div>';
+  }
 
   // Avisos
   html += '<div id="standStatus">'+standStatusHTML(id, s, t)+'</div>';
@@ -1552,39 +1675,73 @@ function applyPhotoFlights(flights){
   const prevFlightStand = {};
   Object.keys(state.data).forEach(k => { const d=state.data[k]; if (d && d.flight) prevFlightStand[String(d.flight).toUpperCase()] = k; });
   let changes = 0;
+  const writtenEta = {}; // platz → hora del vuelo ya cargado (para que gane el primero que llega)
   flights.forEach(f => {
     if (!f.stand || !AREA_OF_STAND[f.stand]) return;
-    const s = getStand(f.stand);
+    const fl = airlineFlags(f.flight);
     if (f.isDeparture){
-      s.aviso = 1;
-    } else {
-      // ¿este vuelo estaba en otro platz? → cambio de platz
-      const fl0 = String(f.flight||"").toUpperCase();
-      if (fl0){
-        const oldId = prevFlightStand[fl0];
-        if (oldId && oldId !== f.stand){
-          s.changed = 1; s.changedFrom = oldId;
-          const os = state.data[oldId]; if (os){ os.movedAway = 1; os.movedTo = f.stand; }
-          changes++;
-        }
-      }
-      if (Number(f.wagenKg)>0) s.weight = String(f.wagenKg);
-      if (Number(f.postKg)>0) s.post.kg = String(f.postKg);
-      if (Number(f.dolly)>0) s.dolly.need = Number(f.dolly);
-      if (Number(f.trailer)>0) s.trailer.need = Number(f.trailer);
-      s.retirar = Number(f.empties)>0 ? Number(f.empties) : 0;
-      const fl = airlineFlags(f.flight);
-      s.dnata = fl.dnata ? 1 : 0;
-      s.dnataTrailer = fl.dnataTrailer ? 1 : 0;
-      s.max4 = fl.max4 ? 1 : 0;
-      s.flight = f.flight || "";
-      s.acType = f.type || "";
-      s.eta = f.time || "";
-      s.movedAway = 0; s.movedTo = "";
+      const s = getStand(f.stand); s.aviso = 1;
+      return;
     }
+    // --- Vuelo DNata: NO se prepara. Se guarda en la lista del día y se avisa 30 min antes. ---
+    if (fl.dnata){
+      if (!state.dnataFlights) state.dnataFlights = [];
+      const entry = { stand:f.stand, flight:f.flight||"", time:f.time||"", type:f.type||"" };
+      const key = entry.stand+"|"+entry.flight+"|"+entry.time;
+      const idx = state.dnataFlights.findIndex(x => (x.stand+"|"+x.flight+"|"+x.time)===key);
+      if (idx>=0) state.dnataFlights[idx] = entry; else state.dnataFlights.push(entry);
+      saveDnata();
+      return;
+    }
+    // --- Vuelo Swissport (se prepara): gana el PRIMERO que llega si el platz se repite ---
+    const prevT = writtenEta[f.stand];
+    if (prevT != null && clockMin(f.time) >= clockMin(prevT)) return; // ya cargamos uno más temprano
+    writtenEta[f.stand] = f.time || "";
+    const s = getStand(f.stand);
+    // ¿este vuelo estaba en otro platz? → cambio de platz
+    const fl0 = String(f.flight||"").toUpperCase();
+    if (fl0){
+      const oldId = prevFlightStand[fl0];
+      if (oldId && oldId !== f.stand){
+        s.changed = 1; s.changedFrom = oldId;
+        const os = state.data[oldId]; if (os){ os.movedAway = 1; os.movedTo = f.stand; }
+        changes++;
+      }
+    }
+    s.weight = Number(f.wagenKg)>0 ? String(f.wagenKg) : "";
+    s.post.kg = Number(f.postKg)>0 ? String(f.postKg) : "";
+    s.dolly.need = Number(f.dolly)>0 ? Number(f.dolly) : 0;
+    s.trailer.need = Number(f.trailer)>0 ? Number(f.trailer) : 0;
+    s.retirar = Number(f.empties)>0 ? Number(f.empties) : 0;
+    s.dnata = 0; s.dnataOnly = 0;
+    s.dnataTrailer = fl.dnataTrailer ? 1 : 0;
+    s.max4 = fl.max4 ? 1 : 0;
+    s.flight = f.flight || "";
+    s.acType = f.type || "";
+    s.eta = f.time || "";
+    s.fkey = flightKey(f.flight, f.time, f.stand);
+    s.movedAway = 0; s.movedTo = "";
   });
   save();
   if (changes>0) setTimeout(()=>toast("⚠️ "+changes+" "+T[state.lang].changesDetected), 400);
+}
+
+// Cargar un vuelo concreto de la agenda en su platz (otro avión → material en limpio)
+function applyFlightToStand(id, f){
+  const s = getStand(id);
+  s.weight = Number(f.wagenKg)>0 ? String(f.wagenKg) : "";
+  s.wagen = {have:0, need:0};
+  s.dolly = {need: Number(f.dolly)>0?Number(f.dolly):0, have:0};
+  s.trailer = {need: Number(f.trailer)>0?Number(f.trailer):0, have:0};
+  s.wageli = {need:0, have:0};
+  s.post = {need:0, have:0, kg: Number(f.postKg)>0?String(f.postKg):""};
+  s.retirar = Number(f.empties)>0 ? Number(f.empties) : 0;
+  const fl = airlineFlags(f.flight);
+  s.dnata = 0; s.dnataOnly = 0; s.dnataTrailer = fl.dnataTrailer?1:0; s.max4 = fl.max4?1:0;
+  s.flight = f.flight||""; s.acType = f.type||""; s.eta = f.time||"";
+  s.fkey = fkeyOf(f);
+  s.changed = 0; s.changedFrom = ""; s.movedAway = 0; s.movedTo = ""; s.aviso = 0;
+  save();
 }
 
 // Cámara EXCLUSIVA de cambios: solo filas con línea roja.
@@ -1890,15 +2047,45 @@ document.addEventListener("click", function(e){
     render(); return;
   }
   if (action==="open-stand"){ state.view = {name:"stand", standId: el.dataset.stand, secId: state.view.secId||""}; render(); return; }
+  if (action==="toggle-done"){
+    const key = el.dataset.key;
+    const now = !isDone(key);
+    setFlag(key, "done", now);
+    const y = window.scrollY; render(); window.scrollTo(0,y);
+    toast(now ? ("✓ "+T[state.lang].markedPrepared) : T[state.lang].markedUndone);
+    return;
+  }
+  if (action==="load-flight"){
+    const id = el.dataset.stand; const key = el.dataset.key;
+    const f = standArrivalsToday(id).find(x => fkeyOf(x)===key);
+    if (f){ applyFlightToStand(id, f); render(); toast("✓ "+(f.flight||id)+" "+T[state.lang].loadedWord); }
+    return;
+  }
   if (action==="clear-stand"){
     const id = el.dataset.stand;
-    if (!window.confirm(T[state.lang].clearStandAsk)) return;
+    const t = T[state.lang];
+    const s = getStand(id);
+    const curKey = s.fkey || flightKey(s.flight, s.eta, id);
+    // ¿hay otro vuelo hoy en este platz (todavía sin limpiar, distinto al actual)?
+    const next = standArrivalsToday(id).find(f => fkeyOf(f)!==curKey && !isCleaned(fkeyOf(f)));
+    if (next){
+      if (!window.confirm(t.cleanAndNextAsk.replace("{fl}", next.flight||"—").replace("{t}", next.time||""))) return;
+      if (curKey) setFlag(curKey, "cleaned", true); // marca limpio PERO conserva "preparado"
+      applyFlightToStand(id, next);
+      state.frachs = (state.frachs||[]).filter(f => f.stand!==id);
+      saveFrach();
+      render();
+      toast("➡️ "+id+" · "+(next.flight||"")+" "+(next.time||""));
+      return;
+    }
+    if (!window.confirm(t.clearStandAsk)) return;
+    if (curKey) setFlag(curKey, "cleaned", true); // conserva "preparado" en el historial
     state.data[id] = emptyStand();
     state.frachs = (state.frachs||[]).filter(f => f.stand!==id);
     save(); saveFrach();
     state.view = {name:"area", areaId: AREA_OF_STAND[id].id};
     render();
-    toast("✓ "+id+" "+T[state.lang].clearedWord);
+    toast("✓ "+id+" "+t.clearedWord);
     return;
   }
   if (action==="open-depot"){ state.view = {name:"depot", depotId: el.dataset.depot, areaId: el.dataset.area}; render(); return; }
